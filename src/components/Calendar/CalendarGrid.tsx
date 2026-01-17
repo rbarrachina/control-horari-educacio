@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
-import { ca } from 'date-fns/locale';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isToday, addMonths, subMonths, getDay } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CalendarDay } from './CalendarDay';
 import { DayDetailDialog } from './DayDetailDialog';
-import { MONTH_NAMES_CA, DAY_NAMES_CA } from '@/lib/constants';
+import { WeeklySummaryIcon } from './WeeklySummaryIcon';
+import { WeeklySummaryDialog } from './WeeklySummaryDialog';
+import { MONTH_NAMES_CA } from '@/lib/constants';
 import type { DayData, UserConfig } from '@/types';
 
 interface CalendarGridProps {
@@ -17,6 +18,7 @@ interface CalendarGridProps {
 export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProps) {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedWeek, setSelectedWeek] = useState<{ start: Date; end: Date } | null>(null);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -39,7 +41,22 @@ export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProp
     }
   };
 
-  const weekDayHeaders = ['Dl', 'Dt', 'Dc', 'Dj', 'Dv', 'Ds', 'Dg'];
+  // Group days by week for rendering
+  const weeks: Date[][] = [];
+  let currentWeek: Date[] = [];
+  
+  days.forEach((day, index) => {
+    currentWeek.push(day);
+    if (getDay(day) === 0) { // Sunday
+      weeks.push(currentWeek);
+      currentWeek = [];
+    }
+  });
+  if (currentWeek.length > 0) {
+    weeks.push(currentWeek);
+  }
+
+  const weekDayHeaders = ['Dl', 'Dt', 'Dc', 'Dj', 'Dv', 'Ds', 'Dg', ''];
 
   return (
     <div className="bg-card rounded-xl shadow-lg p-6">
@@ -67,10 +84,10 @@ export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProp
         </Button>
       </div>
 
-      <div className="grid grid-cols-7 gap-2 mb-2">
+      <div className="grid grid-cols-8 gap-2 mb-2">
         {weekDayHeaders.map((day, index) => (
           <div
-            key={day}
+            key={`header-${index}`}
             className="text-center text-sm font-medium text-muted-foreground py-2"
           >
             {day}
@@ -78,19 +95,42 @@ export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProp
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-2">
-        {days.map((day) => {
-          const dateStr = format(day, 'yyyy-MM-dd');
+      <div className="space-y-2">
+        {weeks.map((week, weekIndex) => {
+          const weekStart = startOfWeek(week[0], { weekStartsOn: 1 });
+          const weekEnd = endOfWeek(week[0], { weekStartsOn: 1 });
+          
           return (
-            <CalendarDay
-              key={dateStr}
-              date={day}
-              dayData={daysData[dateStr] || null}
-              config={config}
-              isCurrentMonth={isSameMonth(day, currentDate)}
-              isToday={isToday(day)}
-              onClick={() => setSelectedDate(day)}
-            />
+            <div key={weekIndex} className="grid grid-cols-8 gap-2">
+              {week.map((day) => {
+                const dateStr = format(day, 'yyyy-MM-dd');
+                return (
+                  <CalendarDay
+                    key={dateStr}
+                    date={day}
+                    dayData={daysData[dateStr] || null}
+                    config={config}
+                    isCurrentMonth={isSameMonth(day, currentDate)}
+                    isToday={isToday(day)}
+                    onClick={() => setSelectedDate(day)}
+                  />
+                );
+              })}
+              {/* Fill missing days in partial weeks */}
+              {week.length < 7 && Array(7 - week.length).fill(null).map((_, i) => (
+                <div key={`empty-${i}`} className="h-20" />
+              ))}
+              {/* Weekly summary icon */}
+              <div className="flex items-center justify-center">
+                <WeeklySummaryIcon
+                  weekStart={weekStart}
+                  weekEnd={weekEnd}
+                  daysData={daysData}
+                  config={config}
+                  onClick={() => setSelectedWeek({ start: weekStart, end: weekEnd })}
+                />
+              </div>
+            </div>
           );
         })}
       </div>
@@ -101,6 +141,15 @@ export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProp
         config={config}
         onClose={() => setSelectedDate(null)}
         onSave={onDayUpdate}
+      />
+      
+      <WeeklySummaryDialog
+        weekStart={selectedWeek?.start || null}
+        weekEnd={selectedWeek?.end || null}
+        daysData={daysData}
+        config={config}
+        onClose={() => setSelectedWeek(null)}
+        onSaveDay={onDayUpdate}
       />
     </div>
   );
