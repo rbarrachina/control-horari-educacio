@@ -19,12 +19,17 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
   const dateStr = format(date, 'yyyy-MM-dd');
   
   const getStatusColor = () => {
-    if (weekend) return 'bg-[hsl(var(--status-weekend))]';
+    // Weekend with holiday = purple
+    if (weekend && holiday) return 'bg-[hsl(var(--status-holiday))] text-[hsl(var(--status-holiday-foreground))]';
+    // Weekend = dark grey
+    if (weekend) return 'bg-[hsl(var(--status-weekend))] text-foreground';
+    // Holiday = purple
     if (holiday) return 'bg-[hsl(var(--status-holiday))] text-[hsl(var(--status-holiday-foreground))]';
     if (dayData?.dayStatus === 'vacances') return 'bg-[hsl(var(--status-vacation))] text-[hsl(var(--status-vacation-foreground))]';
     
+    // No data = light grey
     if (!dayData?.startTime || !dayData?.endTime) {
-      return 'bg-[hsl(var(--status-pending))] text-[hsl(var(--status-pending-foreground))]';
+      return 'bg-[hsl(var(--status-weekday-empty))] text-[hsl(var(--status-pending-foreground))]';
     }
     
     const worked = calculateWorkedHours(dayData.startTime, dayData.endTime);
