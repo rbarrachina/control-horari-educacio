@@ -127,20 +127,6 @@ I usa un workflow que desplegui `dist/` a Pages.
 
 ---
 
-## 🧾 Llicència (recomanada)
-
-Tu vols que **qualsevol persona ho pugui fer servir** però **mantenint el crèdit al teu nom**.
-
-✅ Recomanació: **MIT License**  
-És molt popular en codi, és permissiva i obliga a conservar el **copyright i el text de llicència** quan es distribueix.
-
-**Text recomanat (capçalera):**
-- `Copyright (c) 2026 Rafa Barrachina`
-
-> Si vols una obligació d’atribució encara més explícita en documentació/marketing, podem valorar **Apache-2.0 + NOTICE**, però per la majoria de repos, **MIT** és perfecta.
-
----
-
 ## 📸 Captures
 *(pendent)*
 
@@ -151,3 +137,12 @@ Issues i PRs són benvinguts. Si obres un PR, explica:
 - què resol
 - com provar-ho
 - captures (si afecta UI)
+
+## 🧾 Llicència i atribució
+
+Aquest projecte es distribueix sota la **Apache License 2.0**.
+
+- Fitxer de llicència: `LICENSE`
+- Fitxer d’atribució: `NOTICE`
+
+Si redistribueixes el projecte (o una derivació), cal conservar aquests avisos i el crèdit de l’autor.
