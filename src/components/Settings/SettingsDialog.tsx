@@ -92,6 +92,85 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
     }
   };
 
+  const updateSchedulePeriod = (id: string, field: 'startDate' | 'endDate' | 'scheduleType', value: string) => {
+    setLocalConfig(prev => {
+      const periodIndex = prev.schedulePeriods.findIndex(p => p.id === id);
+      if (periodIndex === -1) return prev;
+
+      const updatedPeriod = { ...prev.schedulePeriods[periodIndex] };
+      const oldEndDate = updatedPeriod.endDate;
+      
+      if (field === 'scheduleType') {
+        updatedPeriod.scheduleType = value as ScheduleType;
+      } else {
+        updatedPeriod[field] = value;
+      }
+
+      let newPeriods = [...prev.schedulePeriods];
+      newPeriods[periodIndex] = updatedPeriod;
+
+      // If end date changed and there's a gap, create complementary period
+      if (field === 'endDate' && value !== oldEndDate) {
+        const endDate = parseISO(value);
+        const yearEnd = parseISO('2026-12-31');
+        
+        // Remove any periods that start after the new end date (we'll recreate them)
+        newPeriods = newPeriods.filter(p => p.id === id || parseISO(p.startDate) <= endDate);
+        
+        // If there's remaining year after this period, create complementary
+        if (endDate < yearEnd) {
+          const nextDay = new Date(endDate);
+          nextDay.setDate(nextDay.getDate() + 1);
+          const oppositeType: ScheduleType = updatedPeriod.scheduleType === 'estiu' ? 'hivern' : 'estiu';
+          
+          newPeriods.push({
+            id: `period-${Date.now()}`,
+            startDate: format(nextDay, 'yyyy-MM-dd'),
+            endDate: '2026-12-31',
+            scheduleType: oppositeType,
+          });
+        }
+      }
+
+      // If start date changed, adjust previous period or create one
+      if (field === 'startDate') {
+        const startDate = parseISO(value);
+        const yearStart = parseISO('2026-01-01');
+        
+        // Remove any periods that end before the new start date
+        newPeriods = newPeriods.filter(p => p.id === id || parseISO(p.endDate) >= startDate);
+        
+        // If there's a gap at the beginning of the year, create complementary
+        if (startDate > yearStart) {
+          const prevDay = new Date(startDate);
+          prevDay.setDate(prevDay.getDate() - 1);
+          const oppositeType: ScheduleType = updatedPeriod.scheduleType === 'estiu' ? 'hivern' : 'estiu';
+          
+          // Check if there's already a period covering this
+          const coveringPeriod = newPeriods.find(p => 
+            p.id !== id && 
+            parseISO(p.startDate) <= yearStart && 
+            parseISO(p.endDate) >= prevDay
+          );
+          
+          if (!coveringPeriod) {
+            newPeriods.push({
+              id: `period-${Date.now()}-start`,
+              startDate: '2026-01-01',
+              endDate: format(prevDay, 'yyyy-MM-dd'),
+              scheduleType: oppositeType,
+            });
+          }
+        }
+      }
+
+      // Sort periods by start date
+      newPeriods.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+
+      return { ...prev, schedulePeriods: newPeriods };
+    });
+  };
+
   const removeSchedulePeriod = (id: string) => {
     setLocalConfig(prev => ({
       ...prev,
@@ -302,22 +381,42 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
               )}
 
               <div className="space-y-2">
-                {localConfig.schedulePeriods.map((period) => {
-                  const startDate = parseISO(period.startDate);
-                  const endDate = parseISO(period.endDate);
-                  return (
-                    <div key={period.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Badge variant={period.scheduleType === 'estiu' ? 'secondary' : 'outline'}>
-                          {period.scheduleType === 'estiu' ? 'Estiu' : 'Hivern'}
-                        </Badge>
-                        <span>
-                          {format(startDate, 'dd/MM')} - {format(endDate, 'dd/MM')}
-                        </span>
-                        <span className="text-muted-foreground text-sm">
-                          ({SCHEDULE_HOURS[period.scheduleType]}h/dia)
-                        </span>
-                      </div>
+                {localConfig.schedulePeriods.map((period) => (
+                  <div key={period.id} className="flex items-center gap-2 p-3 bg-muted rounded-lg flex-wrap">
+                    <Select
+                      value={period.scheduleType}
+                      onValueChange={(v) => updateSchedulePeriod(period.id, 'scheduleType', v)}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hivern">Hivern</SelectItem>
+                        <SelectItem value="estiu">Estiu</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">de</span>
+                    <Input
+                      type="date"
+                      className="w-36"
+                      value={period.startDate}
+                      onChange={(e) => updateSchedulePeriod(period.id, 'startDate', e.target.value)}
+                      min="2026-01-01"
+                      max="2026-12-31"
+                    />
+                    <span className="text-sm text-muted-foreground">a</span>
+                    <Input
+                      type="date"
+                      className="w-36"
+                      value={period.endDate}
+                      onChange={(e) => updateSchedulePeriod(period.id, 'endDate', e.target.value)}
+                      min="2026-01-01"
+                      max="2026-12-31"
+                    />
+                    <span className="text-muted-foreground text-sm ml-auto">
+                      ({SCHEDULE_HOURS[period.scheduleType]}h/dia)
+                    </span>
+                    {localConfig.schedulePeriods.length > 1 && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -326,9 +425,9 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                       >
                         <X className="w-4 h-4" />
                       </Button>
-                    </div>
-                  );
-                })}
+                    )}
+                  </div>
+                ))}
               </div>
 
               <div className="flex gap-2 items-end p-3 bg-muted/50 rounded-lg">
