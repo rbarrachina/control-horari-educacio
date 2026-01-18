@@ -142,7 +142,9 @@ Issues i PRs són benvinguts. Si obres un PR, explica:
 
 Aquest projecte es distribueix sota la **Apache License 2.0**.
 
-- Fitxer de llicència: `LICENSE`
-- Fitxer d’atribució: `NOTICE`
+- Llicència: `LICENSE` (Apache-2.0)
+- Atribució: `NOTICE` (crèdits i avisos)
+
+Autoria: **Rafa Barrachina** (GitHub: `@rbarrachina`)
 
 Si redistribueixes el projecte (o una derivació), cal conservar aquests avisos i el crèdit de l’autor.
