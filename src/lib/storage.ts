@@ -8,7 +8,22 @@ export function getUserConfig(): UserConfig {
   try {
     const stored = localStorage.getItem(USER_CONFIG_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      // Migrate old config without schedulePeriods
+      if (!parsed.schedulePeriods) {
+        parsed.schedulePeriods = DEFAULT_USER_CONFIG.schedulePeriods;
+      }
+      // Migrate old weeklyConfig with theoreticalHours
+      if (parsed.weeklyConfig && 'theoreticalHours' in (parsed.weeklyConfig.monday || {})) {
+        parsed.weeklyConfig = {
+          monday: { dayType: parsed.weeklyConfig.monday?.dayType || 'presencial' },
+          tuesday: { dayType: parsed.weeklyConfig.tuesday?.dayType || 'presencial' },
+          wednesday: { dayType: parsed.weeklyConfig.wednesday?.dayType || 'teletreball' },
+          thursday: { dayType: parsed.weeklyConfig.thursday?.dayType || 'presencial' },
+          friday: { dayType: parsed.weeklyConfig.friday?.dayType || 'teletreball' },
+        };
+      }
+      return parsed;
     }
   } catch (error) {
     console.error('Error loading user config:', error);
