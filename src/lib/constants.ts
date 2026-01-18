@@ -22,18 +22,31 @@ export const DEFAULT_USER_CONFIG = {
   defaultStartTime: '07:30',
   defaultEndTime: '15:00',
   weeklyConfig: {
-    monday: { dayType: 'presencial' as const, theoreticalHours: 7.5 },
-    tuesday: { dayType: 'presencial' as const, theoreticalHours: 7.5 },
-    wednesday: { dayType: 'teletreball' as const, theoreticalHours: 7.5 },
-    thursday: { dayType: 'presencial' as const, theoreticalHours: 7.5 },
-    friday: { dayType: 'teletreball' as const, theoreticalHours: 7.5 },
+    monday: { dayType: 'presencial' as const },
+    tuesday: { dayType: 'presencial' as const },
+    wednesday: { dayType: 'teletreball' as const },
+    thursday: { dayType: 'presencial' as const },
+    friday: { dayType: 'teletreball' as const },
   },
+  schedulePeriods: [
+    {
+      id: 'default-winter',
+      startDate: '2026-01-01',
+      endDate: '2026-12-31',
+      scheduleType: 'hivern' as const,
+    },
+  ],
   totalVacationDays: 25,
   usedVacationDays: 0,
   totalAPHours: 90,
   usedAPHours: 0,
   flexibilityHours: 0,
   holidays: BARCELONA_HOLIDAYS_2026,
+};
+
+export const SCHEDULE_HOURS = {
+  hivern: 7.5,
+  estiu: 7,
 };
 
 export const DAYS_OF_WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const;

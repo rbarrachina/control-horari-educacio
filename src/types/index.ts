@@ -1,6 +1,7 @@
 export type DayType = 'presencial' | 'teletreball';
 export type DayStatus = 'laboral' | 'festiu' | 'vacances' | 'assumpte_propi' | 'flexibilitat';
 export type RequestStatus = 'pendent' | 'aprovat' | null;
+export type ScheduleType = 'hivern' | 'estiu';
 
 export interface DayData {
   date: string; // YYYY-MM-DD
@@ -16,11 +17,18 @@ export interface DayData {
 }
 
 export interface WeeklyConfig {
-  monday: { dayType: DayType; theoreticalHours: number };
-  tuesday: { dayType: DayType; theoreticalHours: number };
-  wednesday: { dayType: DayType; theoreticalHours: number };
-  thursday: { dayType: DayType; theoreticalHours: number };
-  friday: { dayType: DayType; theoreticalHours: number };
+  monday: { dayType: DayType };
+  tuesday: { dayType: DayType };
+  wednesday: { dayType: DayType };
+  thursday: { dayType: DayType };
+  friday: { dayType: DayType };
+}
+
+export interface SchedulePeriod {
+  id: string;
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+  scheduleType: ScheduleType;
 }
 
 export interface UserConfig {
@@ -29,6 +37,7 @@ export interface UserConfig {
   defaultStartTime: string;
   defaultEndTime: string;
   weeklyConfig: WeeklyConfig;
+  schedulePeriods: SchedulePeriod[];
   totalVacationDays: number;
   usedVacationDays: number;
   totalAPHours: number;

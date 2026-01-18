@@ -6,11 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Download, Upload, Trash2, AlertTriangle } from 'lucide-react';
+import { X, Plus, Download, Upload, Trash2, AlertTriangle, AlertCircle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import type { UserConfig, DayType } from '@/types';
-import { DAYS_OF_WEEK, DAY_NAMES_CA, MONTH_NAMES_CA } from '@/lib/constants';
-import { format, parseISO } from 'date-fns';
+import type { UserConfig, DayType, SchedulePeriod, ScheduleType } from '@/types';
+import { DAYS_OF_WEEK, DAY_NAMES_CA, MONTH_NAMES_CA, SCHEDULE_HOURS } from '@/lib/constants';
+import { format, parseISO, eachDayOfInterval, isWithinInterval } from 'date-fns';
 import { exportAllData, importAllData, resetAllData, type ExportData } from '@/lib/storage';
 import { toast } from 'sonner';
 
@@ -25,27 +25,77 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: SettingsDialogProps) {
   const [localConfig, setLocalConfig] = useState<UserConfig>(config);
   const [newHoliday, setNewHoliday] = useState('');
+  const [newPeriod, setNewPeriod] = useState<Omit<SchedulePeriod, 'id'>>({
+    startDate: '',
+    endDate: '',
+    scheduleType: 'hivern',
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setLocalConfig(config);
   }, [config]);
 
+  // Validate that all days of 2026 are covered by schedule periods
+  const validateScheduleCoverage = (): { isValid: boolean; missingDays: number } => {
+    const yearStart = new Date(2026, 0, 1);
+    const yearEnd = new Date(2026, 11, 31);
+    const allDays = eachDayOfInterval({ start: yearStart, end: yearEnd });
+    
+    let coveredDays = 0;
+    allDays.forEach(day => {
+      for (const period of localConfig.schedulePeriods) {
+        const start = parseISO(period.startDate);
+        const end = parseISO(period.endDate);
+        if (isWithinInterval(day, { start, end })) {
+          coveredDays++;
+          break;
+        }
+      }
+    });
+    
+    return {
+      isValid: coveredDays === allDays.length,
+      missingDays: allDays.length - coveredDays,
+    };
+  };
+
+  const scheduleValidation = validateScheduleCoverage();
+
   const handleSave = () => {
     onSave(localConfig);
     onClose();
   };
 
-  const updateWeeklyConfig = (day: keyof typeof localConfig.weeklyConfig, field: 'dayType' | 'theoreticalHours', value: string | number) => {
+  const updateWeeklyConfig = (day: keyof typeof localConfig.weeklyConfig, value: DayType) => {
     setLocalConfig(prev => ({
       ...prev,
       weeklyConfig: {
         ...prev.weeklyConfig,
         [day]: {
-          ...prev.weeklyConfig[day],
-          [field]: field === 'theoreticalHours' ? parseFloat(value as string) || 0 : value,
+          dayType: value,
         },
       },
+    }));
+  };
+
+  const addSchedulePeriod = () => {
+    if (newPeriod.startDate && newPeriod.endDate) {
+      const id = `period-${Date.now()}`;
+      setLocalConfig(prev => ({
+        ...prev,
+        schedulePeriods: [...prev.schedulePeriods, { ...newPeriod, id }].sort(
+          (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        ),
+      }));
+      setNewPeriod({ startDate: '', endDate: '', scheduleType: 'hivern' });
+    }
+  };
+
+  const removeSchedulePeriod = (id: string) => {
+    setLocalConfig(prev => ({
+      ...prev,
+      schedulePeriods: prev.schedulePeriods.filter(p => p.id !== id),
     }));
   };
 
@@ -214,13 +264,13 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
             </div>
 
             <div className="space-y-3">
-              <Label>Configuració setmanal</Label>
+              <Label>Configuració setmanal (Presencial / Teletreball)</Label>
               {DAYS_OF_WEEK.map((day) => (
                 <div key={day} className="flex items-center gap-4 p-3 bg-muted rounded-lg">
                   <span className="font-medium w-24">{DAY_NAMES_CA[day]}</span>
                   <Select
                     value={localConfig.weeklyConfig[day].dayType}
-                    onValueChange={(v) => updateWeeklyConfig(day, 'dayType', v)}
+                    onValueChange={(v) => updateWeeklyConfig(day, v as DayType)}
                   >
                     <SelectTrigger className="w-36">
                       <SelectValue />
@@ -230,20 +280,99 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                       <SelectItem value="teletreball">Teletreball</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      step="0.5"
-                      min="0"
-                      max="12"
-                      className="w-20"
-                      value={localConfig.weeklyConfig[day].theoreticalHours}
-                      onChange={(e) => updateWeeklyConfig(day, 'theoreticalHours', e.target.value)}
-                    />
-                    <span className="text-sm text-muted-foreground">hores</span>
-                  </div>
                 </div>
               ))}
+            </div>
+
+            <div className="border-t pt-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Franges horàries (Estiu / Hivern)</Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Estiu: {SCHEDULE_HOURS.estiu}h/dia | Hivern: {SCHEDULE_HOURS.hivern}h/dia
+                  </p>
+                </div>
+              </div>
+
+              {!scheduleValidation.isValid && (
+                <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-lg">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm">Falten {scheduleValidation.missingDays} dies per definir!</span>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                {localConfig.schedulePeriods.map((period) => {
+                  const startDate = parseISO(period.startDate);
+                  const endDate = parseISO(period.endDate);
+                  return (
+                    <div key={period.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Badge variant={period.scheduleType === 'estiu' ? 'secondary' : 'outline'}>
+                          {period.scheduleType === 'estiu' ? 'Estiu' : 'Hivern'}
+                        </Badge>
+                        <span>
+                          {format(startDate, 'dd/MM')} - {format(endDate, 'dd/MM')}
+                        </span>
+                        <span className="text-muted-foreground text-sm">
+                          ({SCHEDULE_HOURS[period.scheduleType]}h/dia)
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => removeSchedulePeriod(period.id)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex gap-2 items-end p-3 bg-muted/50 rounded-lg">
+                <div className="space-y-1">
+                  <Label className="text-xs">Data inici</Label>
+                  <Input
+                    type="date"
+                    className="w-36"
+                    value={newPeriod.startDate}
+                    onChange={(e) => setNewPeriod(prev => ({ ...prev, startDate: e.target.value }))}
+                    min="2026-01-01"
+                    max="2026-12-31"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Data fi</Label>
+                  <Input
+                    type="date"
+                    className="w-36"
+                    value={newPeriod.endDate}
+                    onChange={(e) => setNewPeriod(prev => ({ ...prev, endDate: e.target.value }))}
+                    min="2026-01-01"
+                    max="2026-12-31"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Tipus</Label>
+                  <Select
+                    value={newPeriod.scheduleType}
+                    onValueChange={(v) => setNewPeriod(prev => ({ ...prev, scheduleType: v as ScheduleType }))}
+                  >
+                    <SelectTrigger className="w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hivern">Hivern</SelectItem>
+                      <SelectItem value="estiu">Estiu</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={addSchedulePeriod} size="icon">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </TabsContent>
 

@@ -1,6 +1,6 @@
-import type { DayData, UserConfig, WeeklySummary, WeeklyConfig } from '@/types';
-import { DAYS_OF_WEEK, MAX_FLEXIBILITY_HOURS, MIN_WEEKLY_SURPLUS_FOR_FLEXIBILITY } from './constants';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, getWeek, parseISO, getDay, addDays } from 'date-fns';
+import type { DayData, UserConfig, WeeklySummary, WeeklyConfig, ScheduleType } from '@/types';
+import { DAYS_OF_WEEK, MAX_FLEXIBILITY_HOURS, MIN_WEEKLY_SURPLUS_FOR_FLEXIBILITY, SCHEDULE_HOURS } from './constants';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, getWeek, parseISO, getDay, addDays, isWithinInterval } from 'date-fns';
 
 export function parseTimeToHours(time: string): number {
   const [hours, minutes] = time.split(':').map(Number);
@@ -32,10 +32,26 @@ export function getDayOfWeekKey(date: Date): keyof WeeklyConfig | null {
   return mapping[dayIndex] || null;
 }
 
+export function getScheduleTypeForDate(date: Date, config: UserConfig): ScheduleType | null {
+  const dateStr = format(date, 'yyyy-MM-dd');
+  for (const period of config.schedulePeriods) {
+    const start = parseISO(period.startDate);
+    const end = parseISO(period.endDate);
+    if (isWithinInterval(date, { start, end })) {
+      return period.scheduleType;
+    }
+  }
+  return null;
+}
+
 export function getTheoreticalHoursForDate(date: Date, config: UserConfig): number {
   const dayKey = getDayOfWeekKey(date);
   if (!dayKey) return 0; // Weekend
-  return config.weeklyConfig[dayKey].theoreticalHours;
+  
+  const scheduleType = getScheduleTypeForDate(date, config);
+  if (!scheduleType) return 7.5; // Default to winter if not defined
+  
+  return SCHEDULE_HOURS[scheduleType];
 }
 
 export function getDayTypeForDate(date: Date, config: UserConfig): 'presencial' | 'teletreball' {
