@@ -76,8 +76,8 @@ All colors MUST be HSL.
     --status-deficit-foreground: 222 47% 11%;
     --status-complete: 142 71% 45%;
     --status-complete-foreground: 210 40% 98%;
-    --status-holiday: 280 65% 60%;
-    --status-holiday-foreground: 210 40% 98%;
+    --status-holiday: 280 64% 60%;
+    --status-holiday-foreground: 0 0% 100%;
     --status-vacation: 199 89% 48%;
     --status-vacation-foreground: 210 40% 98%;
     --status-weekend: 215 20% 50%;

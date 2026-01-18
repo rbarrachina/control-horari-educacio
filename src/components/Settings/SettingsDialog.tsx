@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,21 +6,26 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Download, Upload, Trash2, AlertTriangle } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import type { UserConfig, DayType } from '@/types';
 import { DAYS_OF_WEEK, DAY_NAMES_CA, MONTH_NAMES_CA } from '@/lib/constants';
 import { format, parseISO } from 'date-fns';
+import { exportAllData, importAllData, resetAllData, type ExportData } from '@/lib/storage';
+import { toast } from 'sonner';
 
 interface SettingsDialogProps {
   open: boolean;
   config: UserConfig;
   onClose: () => void;
   onSave: (config: UserConfig) => void;
+  onDataReset?: () => void;
 }
 
-export function SettingsDialog({ open, config, onClose, onSave }: SettingsDialogProps) {
+export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: SettingsDialogProps) {
   const [localConfig, setLocalConfig] = useState<UserConfig>(config);
   const [newHoliday, setNewHoliday] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setLocalConfig(config);
@@ -61,6 +66,55 @@ export function SettingsDialog({ open, config, onClose, onSave }: SettingsDialog
     }));
   };
 
+  // Sort holidays by date
+  const sortedHolidays = [...localConfig.holidays].sort((a, b) => 
+    new Date(a).getTime() - new Date(b).getTime()
+  );
+
+  const handleExport = () => {
+    const data = exportAllData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `control-horari-${format(new Date(), 'yyyy-MM-dd')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Dades exportades correctament');
+  };
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string) as ExportData;
+        if (importAllData(data)) {
+          toast.success('Dades importades correctament. Recarregant...');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          toast.error('Format de dades invàlid');
+        }
+      } catch (error) {
+        toast.error('Error llegint el fitxer');
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleReset = () => {
+    resetAllData();
+    toast.success('Dades esborrades. Recarregant...');
+    setTimeout(() => window.location.reload(), 1000);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -69,10 +123,11 @@ export function SettingsDialog({ open, config, onClose, onSave }: SettingsDialog
         </DialogHeader>
 
         <Tabs defaultValue="personal" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="personal">Personal</TabsTrigger>
             <TabsTrigger value="schedule">Horari</TabsTrigger>
             <TabsTrigger value="holidays">Festius</TabsTrigger>
+            <TabsTrigger value="data">Dades</TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal" className="space-y-4 pt-4">
@@ -207,7 +262,7 @@ export function SettingsDialog({ open, config, onClose, onSave }: SettingsDialog
             </div>
 
             <div className="space-y-2 max-h-60 overflow-y-auto">
-              {localConfig.holidays.sort().map((holiday) => {
+              {sortedHolidays.map((holiday) => {
                 const date = parseISO(holiday);
                 return (
                   <div key={holiday} className="flex items-center justify-between p-2 bg-muted rounded-lg">
@@ -225,6 +280,75 @@ export function SettingsDialog({ open, config, onClose, onSave }: SettingsDialog
                   </div>
                 );
               })}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="data" className="space-y-6 pt-4">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Exportar dades</h3>
+              <p className="text-sm text-muted-foreground">
+                Descarrega totes les dades en un fitxer JSON per fer còpia de seguretat.
+              </p>
+              <Button onClick={handleExport} className="w-full">
+                <Download className="w-4 h-4 mr-2" />
+                Exportar dades
+              </Button>
+            </div>
+
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="text-lg font-semibold">Importar dades</h3>
+              <p className="text-sm text-muted-foreground">
+                Carrega un fitxer JSON exportat anteriorment. Això sobreescriurà les dades actuals.
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleImport}
+                className="hidden"
+                id="import-file"
+              />
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Importar dades
+              </Button>
+            </div>
+
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="text-lg font-semibold text-destructive">Reset complet</h3>
+              <p className="text-sm text-muted-foreground">
+                Esborra totes les dades i comença des de zero. Aquesta acció és irreversible.
+              </p>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="w-full">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Esborrar totes les dades
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-destructive" />
+                      Estàs segur?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Aquesta acció esborrarà totes les dades de configuració i registres horaris.
+                      No es pot desfer.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel·lar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Sí, esborrar tot
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </TabsContent>
         </Tabs>
