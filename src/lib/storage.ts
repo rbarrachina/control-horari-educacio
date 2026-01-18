@@ -54,3 +54,38 @@ export function saveDayData(dayData: DayData): void {
   allDays[dayData.date] = dayData;
   saveDaysData(allDays);
 }
+
+export interface ExportData {
+  config: UserConfig;
+  daysData: Record<string, DayData>;
+  exportDate: string;
+  version: string;
+}
+
+export function exportAllData(): ExportData {
+  return {
+    config: getUserConfig(),
+    daysData: getDaysData(),
+    exportDate: new Date().toISOString(),
+    version: '1.0',
+  };
+}
+
+export function importAllData(data: ExportData): boolean {
+  try {
+    if (data.config && data.daysData) {
+      saveUserConfig(data.config);
+      saveDaysData(data.daysData);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error importing data:', error);
+    return false;
+  }
+}
+
+export function resetAllData(): void {
+  localStorage.removeItem(USER_CONFIG_KEY);
+  localStorage.removeItem(DAYS_DATA_KEY);
+}
