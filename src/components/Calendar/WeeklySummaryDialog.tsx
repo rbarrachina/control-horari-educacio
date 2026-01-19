@@ -109,12 +109,14 @@ export function WeeklySummaryDialog({
     <Dialog open={!!weekStart} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">
-            Resum Setmana {weekNumber}
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            {format(weekStart, 'd')} - {format(weekEnd, 'd')} de {MONTH_NAMES_CA[weekStart.getMonth()]}
-          </p>
+          <div className="flex flex-wrap items-baseline gap-2">
+            <DialogTitle className="text-xl">
+              Resum Setmana {weekNumber}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              {format(weekStart, 'd')} - {format(weekEnd, 'd')} de {MONTH_NAMES_CA[weekStart.getMonth()]}
+            </p>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
