@@ -150,8 +150,8 @@ export function WeeklySummaryDialog({
                     <div className="text-lg font-semibold">
                       {getDayName(day)}, {format(day, 'd')}
                     </div>
-                    <Badge variant="outline">{formatHours(summaryTheoretical)}</Badge>
                     <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline">{formatHours(summaryTheoretical)}</Badge>
                       <Badge variant={dayType === 'presencial' ? 'default' : 'secondary'} className="text-xs">
                         <DayIcon className="w-3 h-3 mr-1" />
                         {dayType === 'presencial' ? 'Presencial' : 'Teletreball'}
