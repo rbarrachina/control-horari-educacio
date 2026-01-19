@@ -72,7 +72,7 @@ export function StatusSummary({ config }: StatusSummaryProps) {
         <CardContent className="pt-0">
           <Progress value={flexProgress} className="h-2" />
           <p className="text-xs text-muted-foreground mt-1">
-            Màxim 25 hores acumulables
+            FX solicitades amb validació
           </p>
         </CardContent>
       </Card>
