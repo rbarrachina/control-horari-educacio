@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import type { DayData, UserConfig, DayStatus, RequestStatus } from '@/types';
 import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime } from '@/lib/timeCalculations';
 import { DAY_NAMES_CA, MONTH_NAMES_CA } from '@/lib/constants';
-import { Home, Building2 } from 'lucide-react';
+import { Home, Building2, Trash2 } from 'lucide-react';
 
 interface DayDetailDialogProps {
   date: Date | null;
@@ -67,7 +67,7 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
 
   const theoreticalHours = getTheoreticalHoursForDate(date, config);
   const dayType = getDayTypeForDate(date, config);
-  const actualWorkedHours = calculateWorkedHours(startTime, endTime);
+  const actualWorkedHours = startTime && endTime ? calculateWorkedHours(startTime, endTime) : 0;
   const absenceHoursDecimal = absenceHours + (absenceMinutes / 60);
   
   // Total worked hours = actual worked + AP/FX hours (if applicable)
@@ -113,8 +113,8 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
     const newDayData: DayData = {
       date: format(date, 'yyyy-MM-dd'),
       theoreticalHours,
-      startTime: absenceType === 'vacances' ? null : startTime,
-      endTime: absenceType === 'vacances' ? null : endTime,
+      startTime: absenceType === 'vacances' ? null : (startTime || null),
+      endTime: absenceType === 'vacances' ? null : (endTime || null),
       dayType,
       dayStatus: getDayStatus(),
       requestStatus: getRequestStatus(),
@@ -149,8 +149,8 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
           </div>
 
           {/* Start and end time */}
-          {absenceType !== 'vacances' && (
-            <div className="grid grid-cols-2 gap-4">
+          {absenceType !== 'vacances' && startTime && endTime && (
+            <div className="grid grid-cols-[1fr_1fr_auto] gap-4 items-end">
               <div className="space-y-2">
                 <Label htmlFor="startTime">Hora d'inici</Label>
                 <Input
@@ -170,7 +170,35 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
                   onChange={(e) => setEndTime(e.target.value)}
                 />
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setStartTime('');
+                  setEndTime('');
+                }}
+                className="text-muted-foreground hover:text-destructive"
+                title="Esborrar horari"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
+          )}
+
+          {/* Show add time button when no times */}
+          {absenceType !== 'vacances' && (!startTime || !endTime) && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setStartTime(config.defaultStartTime);
+                setEndTime(config.defaultEndTime);
+              }}
+              className="w-full"
+            >
+              Afegir horari presencial
+            </Button>
           )}
 
           {/* Absence type selector */}
