@@ -31,6 +31,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
   const [absenceHours, setAbsenceHours] = useState(0);
   const [absenceMinutes, setAbsenceMinutes] = useState(0);
   const [vacationError, setVacationError] = useState('');
+  const [apError, setApError] = useState('');
 
   useEffect(() => {
     if (dayData) {
@@ -64,6 +65,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
       setAbsenceMinutes(0);
     }
     setVacationError('');
+    setApError('');
   }, [dayData, config, date]);
 
   if (!date) return null;
@@ -73,10 +75,12 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
   const actualWorkedHours = startTime && endTime ? calculateWorkedHours(startTime, endTime) : 0;
   const absenceHoursDecimal = absenceHours + (absenceMinutes / 60);
   const previousFlexHours = dayData?.dayStatus === 'flexibilitat' ? (dayData.flexHours || 0) : 0;
+  const previousAPHours = dayData?.dayStatus === 'assumpte_propi' ? (dayData.apHours || 0) : 0;
   const availableFlexHours = Math.min(
     MAX_FLEXIBILITY_HOURS,
     Math.max(0, config.flexibilityHours - config.usedFlexHours + previousFlexHours)
   );
+  const availableAPHours = Math.max(0, config.totalAPHours - config.usedAPHours + previousAPHours);
   const maxFlexHours = Math.min(theoreticalHours, availableFlexHours);
   
   // Total worked hours = actual worked + AP/FX hours (if applicable)
@@ -126,6 +130,11 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
 
     if (exceedsVacationLimit) {
       setVacationError('Ja has demanat el màxim de dies de vacances.');
+      return;
+    }
+
+    if (absenceType === 'assumpte_propi' && getAbsenceHoursDecimal() > availableAPHours) {
+      setApError('No queden prou hores d’AP disponibles.');
       return;
     }
 
@@ -235,6 +244,9 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
               } else {
                 setVacationError('');
               }
+              if (v !== 'assumpte_propi') {
+                setApError('');
+              }
               if (v === 'cap') {
                 setIsApproved(false);
                 setAbsenceHours(0);
@@ -254,6 +266,9 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
             {vacationError && (
               <p className="text-sm text-destructive">{vacationError}</p>
             )}
+            {apError && (
+              <p className="text-sm text-destructive">{apError}</p>
+            )}
           </div>
 
           {/* Hours/minutes input for AP or FX */}
@@ -268,7 +283,12 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                     min="0"
                     max={absenceType === 'flexibilitat' ? Math.floor(maxFlexHours) : Math.floor(theoreticalHours)}
                     value={absenceHours}
-                    onChange={(e) => setAbsenceHours(parseInt(e.target.value) || 0)}
+                    onChange={(e) => {
+                      setAbsenceHours(parseInt(e.target.value) || 0);
+                      if (absenceType === 'assumpte_propi') {
+                        setApError('');
+                      }
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -280,7 +300,12 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                     max="59"
                     step="5"
                     value={absenceMinutes}
-                    onChange={(e) => setAbsenceMinutes(parseInt(e.target.value) || 0)}
+                    onChange={(e) => {
+                      setAbsenceMinutes(parseInt(e.target.value) || 0);
+                      if (absenceType === 'assumpte_propi') {
+                        setApError('');
+                      }
+                    }}
                   />
                 </div>
               </div>
