@@ -67,8 +67,17 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
 
   const theoreticalHours = getTheoreticalHoursForDate(date, config);
   const dayType = getDayTypeForDate(date, config);
-  const workedHours = calculateWorkedHours(startTime, endTime);
-  const difference = workedHours - theoreticalHours;
+  const actualWorkedHours = calculateWorkedHours(startTime, endTime);
+  const absenceHoursDecimal = absenceHours + (absenceMinutes / 60);
+  
+  // Total worked hours = actual worked + AP/FX hours (if applicable)
+  const totalWorkedHours = absenceType === 'vacances' 
+    ? theoreticalHours  // Vacances counts as full day
+    : (absenceType === 'assumpte_propi' || absenceType === 'flexibilitat')
+      ? actualWorkedHours + absenceHoursDecimal
+      : actualWorkedHours;
+  
+  const difference = totalWorkedHours - theoreticalHours;
   const holiday = isHoliday(date, config.holidays);
 
   const getDayName = () => {
@@ -246,7 +255,7 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
           {/* Summary */}
           <div className="p-4 bg-muted rounded-lg">
             <div className="text-sm space-y-1">
-              <p>Hores treballades: <strong>{formatHoursMinutes(workedHours)}</strong></p>
+              <p>Hores totals: <strong>{formatHoursMinutes(totalWorkedHours)}</strong></p>
               <p className={difference >= 0 ? 'text-[hsl(var(--status-complete))]' : 'text-[hsl(var(--status-deficit))]'}>
                 Diferència: <strong>{difference >= 0 ? '+' : '-'}{formatHoursMinutes(difference)}</strong>
               </p>
