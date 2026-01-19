@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import type { DayData, UserConfig } from '@/types';
 import { isWeekend, isHoliday, calculateWorkedHours, getTheoreticalHoursForDate } from '@/lib/timeCalculations';
 import { format, eachDayOfInterval } from 'date-fns';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 
 interface WeeklySummaryIconProps {
   weekStart: Date;
@@ -18,6 +18,8 @@ export function WeeklySummaryIcon({ weekStart, weekEnd, daysData, config, onClic
   // Check if all workdays have data or are properly handled
   let allComplete = true;
   let hasAnyData = false;
+  let totalTheoretical = 0;
+  let totalWorked = 0;
   
   for (const day of days) {
     if (isWeekend(day)) continue;
@@ -25,6 +27,19 @@ export function WeeklySummaryIcon({ weekStart, weekEnd, daysData, config, onClic
     
     const dateStr = format(day, 'yyyy-MM-dd');
     const dayData = daysData[dateStr];
+
+    if (dayData?.dayStatus !== 'vacances') {
+      const theoretical = getTheoreticalHoursForDate(day, config);
+      totalTheoretical += theoretical;
+
+      if (dayData?.dayStatus === 'assumpte_propi') {
+        totalWorked += (dayData.apHours || 0) + calculateWorkedHours(dayData.startTime, dayData.endTime);
+      } else if (dayData?.dayStatus === 'flexibilitat') {
+        totalWorked += (dayData.flexHours || 0) + calculateWorkedHours(dayData.startTime, dayData.endTime);
+      } else {
+        totalWorked += calculateWorkedHours(dayData?.startTime || null, dayData?.endTime || null);
+      }
+    }
     
     if (!dayData) {
       allComplete = false;
@@ -48,23 +63,36 @@ export function WeeklySummaryIcon({ weekStart, weekEnd, daysData, config, onClic
   if (!hasAnyData) {
     allComplete = false;
   }
+
+  const difference = totalWorked - totalTheoretical;
+  const hasNegativeDifference = difference < 0;
   
   return (
     <button
       onClick={onClick}
       className={cn(
         'flex items-center justify-center w-8 h-8 rounded-full transition-all hover:scale-110',
-        allComplete 
-          ? 'bg-[hsl(var(--status-complete))] text-[hsl(var(--status-complete-foreground))]' 
-          : 'bg-[hsl(var(--status-deficit))] text-[hsl(var(--status-deficit-foreground))]'
+        hasNegativeDifference
+          ? 'bg-destructive text-destructive-foreground'
+          : allComplete 
+            ? 'bg-[hsl(var(--status-complete))] text-[hsl(var(--status-complete-foreground))]' 
+            : 'bg-[hsl(var(--status-deficit))] text-[hsl(var(--status-deficit-foreground))]'
       )}
-      title={allComplete ? 'Setmana completa' : 'Setmana amb pendents'}
+      title={
+        hasNegativeDifference
+          ? "Setmana amb dèficit d'hores"
+          : allComplete
+            ? 'Setmana completa'
+            : 'Setmana amb pendents'
+      }
     >
-      {allComplete ? (
-        <CheckCircle className="w-5 h-5" />
-      ) : (
-        <AlertCircle className="w-5 h-5" />
-      )}
+      {hasNegativeDifference ? (
+        <XCircle className="w-5 h-5" />
+      ) : allComplete ? (
+          <CheckCircle className="w-5 h-5" />
+        ) : (
+          <AlertCircle className="w-5 h-5" />
+        )}
     </button>
   );
 }
