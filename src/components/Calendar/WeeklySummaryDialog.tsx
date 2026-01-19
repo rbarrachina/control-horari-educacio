@@ -145,7 +145,35 @@ export function WeeklySummaryDialog({
                 key={dateStr}
                 className={`p-4 rounded-lg border ${statusCardClass}`}
               >
-                <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-4">
+                  <div className="flex flex-col gap-2">
+                    <div className="text-lg font-semibold">
+                      {getDayName(day)}, {format(day, 'd')}
+                    </div>
+                    <Badge variant="outline">{formatHours(summaryTheoretical)}</Badge>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant={dayType === 'presencial' ? 'default' : 'secondary'} className="text-xs">
+                        <DayIcon className="w-3 h-3 mr-1" />
+                        {dayType === 'presencial' ? 'Presencial' : 'Teletreball'}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs flex items-center gap-1">
+                        {StatusIcon && <StatusIcon className="w-3 h-3" />}
+                        {statusLabel}
+                      </Badge>
+                      {dayData?.requestStatus === 'aprovat' && (
+                        <Badge variant="outline" className="text-xs flex items-center gap-1">
+                          <Check className="w-3 h-3" />
+                          Aprovat
+                        </Badge>
+                      )}
+                      {excludedFromTotals && (
+                        <Badge variant="secondary" className="text-xs">
+                          No computa
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                     <div className="space-y-1">
                       <p className="text-muted-foreground">Horari</p>
@@ -171,37 +199,6 @@ export function WeeklySummaryDialog({
                       <p className={`font-semibold ${dayDifference >= 0 ? 'text-[hsl(var(--status-complete))]' : 'text-[hsl(var(--status-deficit))]'}`}>
                         {formatHoursDisplay(dayDifference)}
                       </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 md:items-end">
-                    <div className="text-sm text-muted-foreground">
-                      {getDayName(day)}
-                    </div>
-                    <div className="text-2xl font-semibold leading-none">
-                      {format(day, 'd')}
-                    </div>
-                    <Badge variant="outline">{formatHours(summaryTheoretical)}</Badge>
-                    <div className="flex flex-wrap gap-2 md:justify-end">
-                      <Badge variant={dayType === 'presencial' ? 'default' : 'secondary'} className="text-xs">
-                        <DayIcon className="w-3 h-3 mr-1" />
-                        {dayType === 'presencial' ? 'Presencial' : 'Teletreball'}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs flex items-center gap-1">
-                        {StatusIcon && <StatusIcon className="w-3 h-3" />}
-                        {statusLabel}
-                      </Badge>
-                      {dayData?.requestStatus === 'aprovat' && (
-                        <Badge variant="outline" className="text-xs flex items-center gap-1">
-                          <Check className="w-3 h-3" />
-                          Aprovat
-                        </Badge>
-                      )}
-                      {excludedFromTotals && (
-                        <Badge variant="secondary" className="text-xs">
-                          No computa
-                        </Badge>
-                      )}
                     </div>
                   </div>
                 </div>
