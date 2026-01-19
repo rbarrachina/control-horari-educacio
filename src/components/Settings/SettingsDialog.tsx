@@ -381,6 +381,7 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                     <Select
                       value={period.scheduleType}
                       onValueChange={(v) => updateSchedulePeriod(period.id, 'scheduleType', v)}
+                      disabled={index > 0}
                     >
                       <SelectTrigger className="w-24">
                         <SelectValue />
@@ -408,6 +409,7 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                       onChange={(e) => updateSchedulePeriod(period.id, 'endDate', e.target.value)}
                       min="2026-01-01"
                       max="2026-12-31"
+                      disabled={index > 0}
                     />
                     <span className="text-muted-foreground text-sm ml-auto">
                       ({SCHEDULE_HOURS[period.scheduleType]}h/dia)
