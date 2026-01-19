@@ -82,11 +82,13 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
     nextDay.setDate(nextDay.getDate() + 1);
     const oppositeType: ScheduleType = normalizedPrimary.scheduleType === 'estiu' ? 'hivern' : 'estiu';
     const secondary = sorted[1];
+    const fallbackEndDate = secondary?.endDate || yearEnd;
+    const normalizedEndDate = parseISO(fallbackEndDate) < nextDay ? format(nextDay, 'yyyy-MM-dd') : fallbackEndDate;
     const normalizedSecondary: SchedulePeriod = {
       id: secondary?.id ?? `period-${Date.now()}`,
       startDate: format(nextDay, 'yyyy-MM-dd'),
-      endDate: yearEnd,
-      scheduleType: oppositeType,
+      endDate: normalizedEndDate,
+      scheduleType: secondary?.scheduleType ?? oppositeType,
     };
     return [normalizedPrimary, normalizedSecondary];
   };
@@ -119,7 +121,21 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
       const updatedPeriod = { ...prev.schedulePeriods[periodIndex] };
       
       if (field === 'scheduleType') {
-        updatedPeriod.scheduleType = value as ScheduleType;
+        const nextType = value as ScheduleType;
+        updatedPeriod.scheduleType = nextType;
+        const counterpartIndex = periodIndex === 0 ? 1 : 0;
+        if (prev.schedulePeriods[counterpartIndex]) {
+          const oppositeType: ScheduleType = nextType === 'estiu' ? 'hivern' : 'estiu';
+          const updatedCounterpart = {
+            ...prev.schedulePeriods[counterpartIndex],
+            scheduleType: oppositeType,
+          };
+          const updatedPeriods = [...prev.schedulePeriods];
+          updatedPeriods[periodIndex] = updatedPeriod;
+          updatedPeriods[counterpartIndex] = updatedCounterpart;
+          const normalized = normalizeSchedulePeriods(updatedPeriods);
+          return { ...prev, schedulePeriods: normalized };
+        }
       } else {
         updatedPeriod[field] = value;
       }
