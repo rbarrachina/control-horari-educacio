@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Header } from '@/components/Header';
 import { CalendarGrid } from '@/components/Calendar/CalendarGrid';
-import { StatusSummary } from '@/components/Summary/StatusSummary';
 import { Legend } from '@/components/Legend';
 import { SettingsDialog } from '@/components/Settings/SettingsDialog';
 import { useTimeTracking } from '@/hooks/useTimeTracking';
@@ -15,12 +14,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-6 space-y-6">
-          <Skeleton className="h-16 w-full" />
-          <div className="grid grid-cols-3 gap-4">
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-          </div>
+          <Skeleton className="h-20 w-full" />
           <Skeleton className="h-[500px]" />
         </div>
       </div>
@@ -32,8 +26,6 @@ const Index = () => {
       <Header config={config} onOpenSettings={() => setSettingsOpen(true)} />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
-        <StatusSummary config={config} />
-        
         <CalendarGrid
           daysData={daysData}
           config={config}
