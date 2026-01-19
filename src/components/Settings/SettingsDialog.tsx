@@ -286,22 +286,6 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="flexibility">Flexibilitat acumulada (hores)</Label>
-              <Input
-                id="flexibility"
-                type="number"
-                step="0.5"
-                max="25"
-                min="0"
-                value={localConfig.flexibilityHours}
-                onChange={(e) => setLocalConfig(prev => ({ 
-                  ...prev, 
-                  flexibilityHours: Math.min(25, Math.max(0, parseFloat(e.target.value) || 0))
-                }))}
-              />
-              <p className="text-xs text-muted-foreground">Màxim 25 hores</p>
-            </div>
           </TabsContent>
 
           <TabsContent value="schedule" className="space-y-4 pt-4">
