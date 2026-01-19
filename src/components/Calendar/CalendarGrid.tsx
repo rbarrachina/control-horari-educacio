@@ -57,6 +57,7 @@ export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProp
   }
 
   const weekDayHeaders = ['Dl', 'Dt', 'Dc', 'Dj', 'Dv', 'Ds', 'Dg', ''];
+  const requestedVacationDays = Object.values(daysData).filter((day) => day.dayStatus === 'vacances').length;
 
   return (
     <div className="bg-card rounded-xl shadow-lg p-6">
@@ -139,6 +140,7 @@ export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProp
         date={selectedDate}
         dayData={selectedDate ? daysData[format(selectedDate, 'yyyy-MM-dd')] || null : null}
         config={config}
+        requestedVacationDays={requestedVacationDays}
         onClose={() => setSelectedDate(null)}
         onSave={onDayUpdate}
       />
