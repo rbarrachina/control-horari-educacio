@@ -70,7 +70,10 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
   const actualWorkedHours = startTime && endTime ? calculateWorkedHours(startTime, endTime) : 0;
   const absenceHoursDecimal = absenceHours + (absenceMinutes / 60);
   const previousFlexHours = dayData?.dayStatus === 'flexibilitat' ? (dayData.flexHours || 0) : 0;
-  const availableFlexHours = Math.min(MAX_FLEXIBILITY_HOURS, config.flexibilityHours + previousFlexHours);
+  const availableFlexHours = Math.min(
+    MAX_FLEXIBILITY_HOURS,
+    Math.max(0, config.flexibilityHours - config.usedFlexHours + previousFlexHours)
+  );
   const maxFlexHours = Math.min(theoreticalHours, availableFlexHours);
   
   // Total worked hours = actual worked + AP/FX hours (if applicable)

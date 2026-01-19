@@ -21,8 +21,14 @@ export function useTimeTracking() {
   }, []);
 
   const updateConfig = useCallback((newConfig: UserConfig) => {
-    setConfig(newConfig);
-    saveUserConfig(newConfig);
+    const flexibilityHours = Math.min(MAX_FLEXIBILITY_HOURS, Math.max(0, newConfig.flexibilityHours));
+    const updatedConfig = {
+      ...newConfig,
+      flexibilityHours,
+      usedFlexHours: Math.min(newConfig.usedFlexHours, flexibilityHours),
+    };
+    setConfig(updatedConfig);
+    saveUserConfig(updatedConfig);
   }, []);
 
   const updateDayData = useCallback((dayData: DayData) => {
@@ -78,14 +84,14 @@ export function useTimeTracking() {
         const previousFlexUsed = previousDayData?.dayStatus === 'flexibilitat' ? (previousDayData?.flexHours || 0) : 0;
         const difference = dayData.flexHours - previousFlexUsed;
         if (difference !== 0) {
-          updatedConfig.flexibilityHours = Math.max(0, Math.min(MAX_FLEXIBILITY_HOURS, updatedConfig.flexibilityHours - difference));
+          updatedConfig.usedFlexHours = Math.max(0, Math.min(MAX_FLEXIBILITY_HOURS, updatedConfig.usedFlexHours + difference));
         }
       }
       
       // If flex was used but now it's not flex, restore the hours
       if (previousDayData?.dayStatus === 'flexibilitat' && previousDayData?.flexHours) {
         if (dayData.dayStatus !== 'flexibilitat') {
-          updatedConfig.flexibilityHours = Math.min(MAX_FLEXIBILITY_HOURS, updatedConfig.flexibilityHours + previousDayData.flexHours);
+          updatedConfig.usedFlexHours = Math.max(0, updatedConfig.usedFlexHours - previousDayData.flexHours);
         }
       }
 
@@ -102,6 +108,10 @@ export function useTimeTracking() {
           Math.max(0, updatedConfig.flexibilityHours + weeklyDelta)
         );
       }
+
+      if (updatedConfig.usedFlexHours > updatedConfig.flexibilityHours) {
+        updatedConfig.usedFlexHours = updatedConfig.flexibilityHours;
+      }
       
       if (JSON.stringify(updatedConfig) !== JSON.stringify(prev)) {
         saveUserConfig(updatedConfig);
@@ -113,7 +123,12 @@ export function useTimeTracking() {
 
   const updateFlexibility = useCallback((hours: number) => {
     setConfig(prev => {
-      const updated = { ...prev, flexibilityHours: Math.min(25, Math.max(0, hours)) };
+      const flexibilityHours = Math.min(MAX_FLEXIBILITY_HOURS, Math.max(0, hours));
+      const updated = { 
+        ...prev, 
+        flexibilityHours,
+        usedFlexHours: Math.min(prev.usedFlexHours, flexibilityHours),
+      };
       saveUserConfig(updated);
       return updated;
     });

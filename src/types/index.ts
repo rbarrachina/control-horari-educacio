@@ -42,7 +42,8 @@ export interface UserConfig {
   usedVacationDays: number;
   totalAPHours: number;
   usedAPHours: number;
-  flexibilityHours: number; // Current accumulated (max 25)
+  flexibilityHours: number; // Accumulated (max 25)
+  usedFlexHours: number; // Used from accumulated
   holidays: string[]; // Array of YYYY-MM-DD
 }
 
