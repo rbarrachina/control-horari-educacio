@@ -16,19 +16,21 @@ interface DayDetailDialogProps {
   date: Date | null;
   dayData: DayData | null;
   config: UserConfig;
+  requestedVacationDays: number;
   onClose: () => void;
   onSave: (dayData: DayData) => void;
 }
 
 type AbsenceType = 'cap' | 'vacances' | 'assumpte_propi' | 'flexibilitat';
 
-export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayDetailDialogProps) {
+export function DayDetailDialog({ date, dayData, config, requestedVacationDays, onClose, onSave }: DayDetailDialogProps) {
   const [startTime, setStartTime] = useState(config.defaultStartTime);
   const [endTime, setEndTime] = useState(config.defaultEndTime);
   const [absenceType, setAbsenceType] = useState<AbsenceType>('cap');
   const [isApproved, setIsApproved] = useState(false);
   const [absenceHours, setAbsenceHours] = useState(0);
   const [absenceMinutes, setAbsenceMinutes] = useState(0);
+  const [vacationError, setVacationError] = useState('');
 
   useEffect(() => {
     if (dayData) {
@@ -61,6 +63,7 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
       setAbsenceHours(0);
       setAbsenceMinutes(0);
     }
+    setVacationError('');
   }, [dayData, config, date]);
 
   if (!date) return null;
@@ -116,6 +119,16 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
   };
 
   const handleSave = () => {
+    const isCurrentlyVacation = dayData?.dayStatus === 'vacances';
+    const effectiveRequestedVacations = requestedVacationDays - (isCurrentlyVacation ? 1 : 0);
+    const exceedsVacationLimit = absenceType === 'vacances' && !isCurrentlyVacation
+      && effectiveRequestedVacations >= config.totalVacationDays;
+
+    if (exceedsVacationLimit) {
+      setVacationError('Ja has demanat el màxim de dies de vacances.');
+      return;
+    }
+
     const cappedFlexHours = absenceType === 'flexibilitat'
       ? Math.min(getAbsenceHoursDecimal(), maxFlexHours)
       : undefined;
@@ -215,6 +228,13 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
             <Label>Absència</Label>
             <Select value={absenceType} onValueChange={(v) => {
               setAbsenceType(v as AbsenceType);
+              if (v !== 'vacances') {
+                setVacationError('');
+              } else if (dayData?.dayStatus !== 'vacances' && requestedVacationDays >= config.totalVacationDays) {
+                setVacationError('Ja has demanat el màxim de dies de vacances.');
+              } else {
+                setVacationError('');
+              }
               if (v === 'cap') {
                 setIsApproved(false);
                 setAbsenceHours(0);
@@ -231,6 +251,9 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
                 <SelectItem value="flexibilitat">Flexibilitat horària (FX)</SelectItem>
               </SelectContent>
             </Select>
+            {vacationError && (
+              <p className="text-sm text-destructive">{vacationError}</p>
+            )}
           </div>
 
           {/* Hours/minutes input for AP or FX */}
