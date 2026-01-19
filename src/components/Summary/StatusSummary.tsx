@@ -15,7 +15,7 @@ export function StatusSummary({ config }: StatusSummaryProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 space-y-1">
           <div className="flex items-center justify-between gap-4">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Plane className="w-4 h-4 text-[hsl(var(--status-vacation))]" />
@@ -23,20 +23,20 @@ export function StatusSummary({ config }: StatusSummaryProps) {
             </CardTitle>
             <div className="text-base font-semibold">
               {config.totalVacationDays - config.usedVacationDays}
-              <span className="text-sm font-normal text-muted-foreground"> dies disponibles</span>
+              <span className="text-sm font-normal text-muted-foreground"> dies</span>
             </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            {config.usedVacationDays} de {config.totalVacationDays} dies utilitzats
+          </p>
         </CardHeader>
         <CardContent className="pt-0">
           <Progress value={vacationProgress} className="h-2" />
-          <p className="text-xs text-muted-foreground mt-1">
-            {config.usedVacationDays} de {config.totalVacationDays} dies utilitzats
-          </p>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 space-y-1">
           <div className="flex items-center justify-between gap-4">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Clock className="w-4 h-4 text-primary" />
@@ -44,20 +44,20 @@ export function StatusSummary({ config }: StatusSummaryProps) {
             </CardTitle>
             <div className="text-base font-semibold">
               {(config.totalAPHours - config.usedAPHours).toFixed(1)}
-              <span className="text-sm font-normal text-muted-foreground"> hores disponibles</span>
+              <span className="text-sm font-normal text-muted-foreground"> hores</span>
             </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            {config.usedAPHours.toFixed(1)} de {config.totalAPHours} hores utilitzades
+          </p>
         </CardHeader>
         <CardContent className="pt-0">
           <Progress value={apProgress} className="h-2" />
-          <p className="text-xs text-muted-foreground mt-1">
-            {config.usedAPHours.toFixed(1)} de {config.totalAPHours} hores utilitzades
-          </p>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 space-y-1">
           <div className="flex items-center justify-between gap-4">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[hsl(var(--status-complete))]" />
@@ -65,15 +65,15 @@ export function StatusSummary({ config }: StatusSummaryProps) {
             </CardTitle>
             <div className="text-base font-semibold">
               {config.flexibilityHours.toFixed(1)}
-              <span className="text-sm font-normal text-muted-foreground"> hores acumulades</span>
+              <span className="text-sm font-normal text-muted-foreground"> hores</span>
             </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            FX solicitades amb validació
+          </p>
         </CardHeader>
         <CardContent className="pt-0">
           <Progress value={flexProgress} className="h-2" />
-          <p className="text-xs text-muted-foreground mt-1">
-            FX solicitades amb validació
-          </p>
         </CardContent>
       </Card>
     </div>
