@@ -32,8 +32,8 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
 
   useEffect(() => {
     if (dayData) {
-      setStartTime(dayData.startTime || config.defaultStartTime);
-      setEndTime(dayData.endTime || config.defaultEndTime);
+      setStartTime(dayData.startTime === null ? '' : (dayData.startTime ?? config.defaultStartTime));
+      setEndTime(dayData.endTime === null ? '' : (dayData.endTime ?? config.defaultEndTime));
       
       // Determine absence type from dayStatus
       if (dayData.dayStatus === 'vacances') {
