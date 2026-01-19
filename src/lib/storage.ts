@@ -23,6 +23,9 @@ export function getUserConfig(): UserConfig {
           friday: { dayType: parsed.weeklyConfig.friday?.dayType || 'teletreball' },
         };
       }
+      if (typeof parsed.usedFlexHours !== 'number') {
+        parsed.usedFlexHours = DEFAULT_USER_CONFIG.usedFlexHours;
+      }
       return parsed;
     }
   } catch (error) {

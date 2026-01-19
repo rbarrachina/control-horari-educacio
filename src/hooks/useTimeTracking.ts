@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { UserConfig, DayData } from '@/types';
 import { getUserConfig, saveUserConfig, getDaysData, saveDayData } from '@/lib/storage';
-import { DEFAULT_USER_CONFIG } from '@/lib/constants';
-import { calculateWorkedHours, getTheoreticalHoursForDate, calculateWeeklySummary } from '@/lib/timeCalculations';
+import { DEFAULT_USER_CONFIG, MAX_FLEXIBILITY_HOURS, MIN_WEEKLY_SURPLUS_FOR_FLEXIBILITY } from '@/lib/constants';
+import { calculateWeeklySummary } from '@/lib/timeCalculations';
 import { startOfWeek } from 'date-fns';
 
 export function useTimeTracking() {
@@ -21,19 +21,24 @@ export function useTimeTracking() {
   }, []);
 
   const updateConfig = useCallback((newConfig: UserConfig) => {
-    setConfig(newConfig);
-    saveUserConfig(newConfig);
+    const flexibilityHours = Math.min(MAX_FLEXIBILITY_HOURS, Math.max(0, newConfig.flexibilityHours));
+    const updatedConfig = {
+      ...newConfig,
+      flexibilityHours,
+      usedFlexHours: Math.min(newConfig.usedFlexHours, flexibilityHours),
+    };
+    setConfig(updatedConfig);
+    saveUserConfig(updatedConfig);
   }, []);
 
   const updateDayData = useCallback((dayData: DayData) => {
-    const previousDayData = previousDaysDataRef.current[dayData.date];
-    
-    setDaysData(prev => {
-      const updated = { ...prev, [dayData.date]: dayData };
-      saveDayData(dayData);
-      previousDaysDataRef.current = updated;
-      return updated;
-    });
+    const previousDaysData = previousDaysDataRef.current;
+    const previousDayData = previousDaysData[dayData.date];
+    const updatedDaysData = { ...previousDaysData, [dayData.date]: dayData };
+
+    setDaysData(updatedDaysData);
+    saveDayData(dayData);
+    previousDaysDataRef.current = updatedDaysData;
 
     // Handle vacation/AP approval changes
     setConfig(prev => {
@@ -79,37 +84,33 @@ export function useTimeTracking() {
         const previousFlexUsed = previousDayData?.dayStatus === 'flexibilitat' ? (previousDayData?.flexHours || 0) : 0;
         const difference = dayData.flexHours - previousFlexUsed;
         if (difference !== 0) {
-          updatedConfig.flexibilityHours = Math.max(0, Math.min(25, updatedConfig.flexibilityHours - difference));
+          updatedConfig.usedFlexHours = Math.max(0, Math.min(MAX_FLEXIBILITY_HOURS, updatedConfig.usedFlexHours + difference));
         }
       }
       
       // If flex was used but now it's not flex, restore the hours
       if (previousDayData?.dayStatus === 'flexibilitat' && previousDayData?.flexHours) {
         if (dayData.dayStatus !== 'flexibilitat') {
-          updatedConfig.flexibilityHours = Math.min(25, updatedConfig.flexibilityHours + previousDayData.flexHours);
+          updatedConfig.usedFlexHours = Math.max(0, updatedConfig.usedFlexHours - previousDayData.flexHours);
         }
       }
-      
-      // Check if worked 30+ min extra (only for laboral days)
-      if (dayData.dayStatus === 'laboral' && dayData.startTime && dayData.endTime) {
-        const date = new Date(dayData.date);
-        const worked = calculateWorkedHours(dayData.startTime, dayData.endTime);
-        const theoretical = getTheoreticalHoursForDate(date, updatedConfig);
-        const extra = worked - theoretical;
-        
-        // If extra >= 0.5h (30 min), add to flexibility (max 25h)
-        if (extra >= 0.5) {
-          const previousWorked = previousDayData?.startTime && previousDayData?.endTime 
-            ? calculateWorkedHours(previousDayData.startTime, previousDayData.endTime)
-            : 0;
-          const previousExtra = previousWorked - theoretical;
-          const previousFXAdded = previousExtra >= 0.5 ? previousExtra : 0;
-          const newFXToAdd = extra - previousFXAdded;
-          
-          if (newFXToAdd > 0) {
-            updatedConfig.flexibilityHours = Math.min(25, updatedConfig.flexibilityHours + newFXToAdd);
-          }
-        }
+
+      const weekStart = startOfWeek(new Date(dayData.date), { weekStartsOn: 1 });
+      const previousSummary = calculateWeeklySummary(weekStart, previousDaysData, prev);
+      const newSummary = calculateWeeklySummary(weekStart, updatedDaysData, prev);
+      const previousEligible = previousSummary.difference >= MIN_WEEKLY_SURPLUS_FOR_FLEXIBILITY ? previousSummary.difference : 0;
+      const newEligible = newSummary.difference >= MIN_WEEKLY_SURPLUS_FOR_FLEXIBILITY ? newSummary.difference : 0;
+      const weeklyDelta = newEligible - previousEligible;
+
+      if (weeklyDelta !== 0) {
+        updatedConfig.flexibilityHours = Math.min(
+          MAX_FLEXIBILITY_HOURS,
+          Math.max(0, updatedConfig.flexibilityHours + weeklyDelta)
+        );
+      }
+
+      if (updatedConfig.usedFlexHours > updatedConfig.flexibilityHours) {
+        updatedConfig.usedFlexHours = updatedConfig.flexibilityHours;
       }
       
       if (JSON.stringify(updatedConfig) !== JSON.stringify(prev)) {
@@ -122,7 +123,12 @@ export function useTimeTracking() {
 
   const updateFlexibility = useCallback((hours: number) => {
     setConfig(prev => {
-      const updated = { ...prev, flexibilityHours: Math.min(25, Math.max(0, hours)) };
+      const flexibilityHours = Math.min(MAX_FLEXIBILITY_HOURS, Math.max(0, hours));
+      const updated = { 
+        ...prev, 
+        flexibilityHours,
+        usedFlexHours: Math.min(prev.usedFlexHours, flexibilityHours),
+      };
       saveUserConfig(updated);
       return updated;
     });

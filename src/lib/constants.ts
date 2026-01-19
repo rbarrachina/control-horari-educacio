@@ -41,6 +41,7 @@ export const DEFAULT_USER_CONFIG = {
   totalAPHours: 90,
   usedAPHours: 0,
   flexibilityHours: 0,
+  usedFlexHours: 0,
   holidays: BARCELONA_HOLIDAYS_2026,
 };
 

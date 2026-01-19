@@ -59,6 +59,7 @@ const UserConfigSchema = z.object({
   totalAPHours: z.number().min(0).max(500),
   usedAPHours: z.number().min(0).max(500),
   flexibilityHours: z.number().min(0).max(25),
+  usedFlexHours: z.number().min(0).max(25),
   holidays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).max(100),
 });
 
