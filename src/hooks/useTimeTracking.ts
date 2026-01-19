@@ -60,23 +60,16 @@ export function useTimeTracking() {
         }
       }
       
-      // Check if AP status changed to approved
-      if (dayData.dayStatus === 'assumpte_propi' && dayData.requestStatus === 'aprovat') {
-        const wasAPApproved = previousDayData?.dayStatus === 'assumpte_propi' && previousDayData?.requestStatus === 'aprovat';
-        const previousAPHours = wasAPApproved ? (previousDayData?.apHours || 0) : 0;
-        const newAPHours = dayData.apHours || 0;
-        const difference = newAPHours - previousAPHours;
-        if (difference !== 0) {
-          updatedConfig.usedAPHours = Math.max(0, Math.min(updatedConfig.totalAPHours, updatedConfig.usedAPHours + difference));
-        }
-      }
-      
-      // If AP was approved but now it's not AP or not approved, restore the hours
-      if (previousDayData?.dayStatus === 'assumpte_propi' && previousDayData?.requestStatus === 'aprovat') {
-        if (dayData.dayStatus !== 'assumpte_propi' || dayData.requestStatus !== 'aprovat') {
-          const previousAPHours = previousDayData?.apHours || 0;
-          updatedConfig.usedAPHours = Math.max(0, updatedConfig.usedAPHours - previousAPHours);
-        }
+      // Track AP hours usage regardless of approval
+      const previousAPHours = previousDayData?.dayStatus === 'assumpte_propi'
+        ? (previousDayData?.apHours || 0)
+        : 0;
+      const newAPHours = dayData.dayStatus === 'assumpte_propi'
+        ? (dayData.apHours || 0)
+        : 0;
+      const difference = newAPHours - previousAPHours;
+      if (difference !== 0) {
+        updatedConfig.usedAPHours = Math.max(0, Math.min(updatedConfig.totalAPHours, updatedConfig.usedAPHours + difference));
       }
       
       // Check if flexibility was used
