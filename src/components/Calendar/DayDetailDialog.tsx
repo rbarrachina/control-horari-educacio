@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import type { DayData, UserConfig, DayStatus, RequestStatus } from '@/types';
-import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime, parseTimeToHours } from '@/lib/timeCalculations';
+import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime } from '@/lib/timeCalculations';
 import { DAY_NAMES_CA, MAX_FLEXIBILITY_HOURS, MONTH_NAMES_CA } from '@/lib/constants';
 import { Home, Building2, Trash2 } from 'lucide-react';
 
@@ -25,6 +25,7 @@ type AbsenceType = 'cap' | 'vacances' | 'assumpte_propi' | 'flexibilitat';
 
 export function DayDetailDialog({ date, dayData, config, requestedVacationDays, onClose, onSave }: DayDetailDialogProps) {
   const [startTime, setStartTime] = useState(config.defaultStartTime);
+  const [endTime, setEndTime] = useState(config.defaultEndTime);
   const [absenceType, setAbsenceType] = useState<AbsenceType>('cap');
   const [isApproved, setIsApproved] = useState(false);
   const [absenceHours, setAbsenceHours] = useState(0);
@@ -35,6 +36,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
   useEffect(() => {
     if (dayData) {
       setStartTime(dayData.startTime === null ? '' : (dayData.startTime ?? config.defaultStartTime));
+      setEndTime(dayData.endTime === null ? '' : (dayData.endTime ?? config.defaultEndTime));
       
       // Determine absence type from dayStatus
       if (dayData.dayStatus === 'vacances') {
@@ -56,6 +58,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
       setIsApproved(dayData.requestStatus === 'aprovat');
     } else {
       setStartTime(config.defaultStartTime);
+      setEndTime(config.defaultEndTime);
       setAbsenceType('cap');
       setIsApproved(false);
       setAbsenceHours(0);
@@ -69,12 +72,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
 
   const theoreticalHours = getTheoreticalHoursForDate(date, config);
   const dayType = getDayTypeForDate(date, config);
-  const calculatedEndTime = startTime
-    ? formatHoursToTime(parseTimeToHours(startTime) + theoreticalHours)
-    : '';
-  const actualWorkedHours = startTime && calculatedEndTime
-    ? calculateWorkedHours(startTime, calculatedEndTime)
-    : 0;
+  const actualWorkedHours = startTime && endTime ? calculateWorkedHours(startTime, endTime) : 0;
   const absenceHoursDecimal = absenceHours + (absenceMinutes / 60);
   const previousFlexHours = dayData?.dayStatus === 'flexibilitat' ? (dayData.flexHours || 0) : 0;
   const previousAPHours = dayData?.dayStatus === 'assumpte_propi' ? (dayData.apHours || 0) : 0;
@@ -147,7 +145,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
       date: format(date, 'yyyy-MM-dd'),
       theoreticalHours,
       startTime: absenceType === 'vacances' ? null : (startTime || null),
-      endTime: absenceType === 'vacances' ? null : (startTime ? calculatedEndTime : null),
+      endTime: absenceType === 'vacances' ? null : (endTime || null),
       dayType,
       dayStatus: getDayStatus(),
       requestStatus: getRequestStatus(),
@@ -181,9 +179,9 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
             {holiday && <Badge variant="destructive">Festiu</Badge>}
           </div>
 
-          {/* Start time */}
-          {absenceType !== 'vacances' && startTime && (
-            <div className="grid grid-cols-[1fr_auto] gap-4 items-end">
+          {/* Start and end time */}
+          {absenceType !== 'vacances' && startTime && endTime && (
+            <div className="grid grid-cols-[1fr_1fr_auto] gap-4 items-end">
               <div className="space-y-2">
                 <Label htmlFor="startTime">Hora d'inici</Label>
                 <Input
@@ -194,12 +192,22 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                   min="07:30"
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="endTime">Hora de fi</Label>
+                <Input
+                  id="endTime"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                />
+              </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => {
                   setStartTime('');
+                  setEndTime('');
                 }}
                 className="text-muted-foreground hover:text-destructive"
                 title="Esborrar horari"
@@ -209,19 +217,14 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
             </div>
           )}
 
-          {absenceType !== 'vacances' && startTime && (
-            <p className="text-sm text-muted-foreground">
-              Hora de fi calculada: <span className="font-medium text-foreground">{calculatedEndTime}</span>
-            </p>
-          )}
-
           {/* Show add time button when no times */}
-          {absenceType !== 'vacances' && !startTime && (
+          {absenceType !== 'vacances' && (!startTime || !endTime) && (
             <Button
               type="button"
               variant="outline"
               onClick={() => {
                 setStartTime(config.defaultStartTime);
+                setEndTime(config.defaultEndTime);
               }}
               className="w-full"
             >
