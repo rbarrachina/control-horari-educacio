@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import type { DayData, UserConfig } from '@/types';
 import { calculateWorkedHours, isWeekend, isHoliday, getTheoreticalHoursForDate, getDayTypeForDate } from '@/lib/timeCalculations';
 import { format } from 'date-fns';
-import { Home, Building2, Plane, Clock, Sparkles, Calendar } from 'lucide-react';
+import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check } from 'lucide-react';
 
 interface CalendarDayProps {
   date: Date;
@@ -25,7 +25,19 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
     if (weekend) return 'bg-[hsl(var(--status-weekend))] text-foreground';
     // Holiday = purple
     if (holiday) return 'bg-[hsl(var(--status-holiday))] text-[hsl(var(--status-holiday-foreground))]';
-    if (dayData?.dayStatus === 'vacances') return 'bg-[hsl(var(--status-vacation))] text-[hsl(var(--status-vacation-foreground))]';
+    
+    // Vacances = blue
+    if (dayData?.dayStatus === 'vacances') {
+      return 'bg-[hsl(var(--status-vacation))] text-[hsl(var(--status-vacation-foreground))]';
+    }
+    
+    // AP or FX with approval status
+    if (dayData?.dayStatus === 'assumpte_propi' || dayData?.dayStatus === 'flexibilitat') {
+      if (dayData.requestStatus === 'aprovat') {
+        return 'bg-[hsl(var(--status-complete))] text-[hsl(var(--status-complete-foreground))]';
+      }
+      return 'bg-[hsl(var(--status-deficit))] text-[hsl(var(--status-deficit-foreground))]';
+    }
     
     // No data = light grey
     if (!dayData?.startTime || !dayData?.endTime) {
@@ -49,6 +61,14 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
     if (dayData?.dayStatus === 'assumpte_propi') return <Clock className="w-3 h-3" />;
     if (dayData?.dayStatus === 'flexibilitat') return <Sparkles className="w-3 h-3" />;
     if (holiday) return <Calendar className="w-3 h-3" />;
+    return null;
+  };
+
+  const getApprovalIcon = () => {
+    if ((dayData?.dayStatus === 'assumpte_propi' || dayData?.dayStatus === 'flexibilitat' || dayData?.dayStatus === 'vacances') 
+        && dayData?.requestStatus === 'aprovat') {
+      return <Check className="w-3 h-3" />;
+    }
     return null;
   };
 
@@ -82,11 +102,10 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
                 {dayData.startTime} - {dayData.endTime}
               </div>
             )}
-            {getStatusIcon() && (
-              <div className="absolute bottom-2 right-2">
-                {getStatusIcon()}
-              </div>
-            )}
+            <div className="absolute bottom-2 right-2 flex items-center gap-1">
+              {getApprovalIcon()}
+              {getStatusIcon()}
+            </div>
           </div>
         )}
       </div>
