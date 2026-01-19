@@ -24,8 +24,8 @@ export const DEFAULT_USER_CONFIG = {
   weeklyConfig: {
     monday: { dayType: 'presencial' as const },
     tuesday: { dayType: 'presencial' as const },
-    wednesday: { dayType: 'teletreball' as const },
-    thursday: { dayType: 'presencial' as const },
+    wednesday: { dayType: 'presencial' as const },
+    thursday: { dayType: 'teletreball' as const },
     friday: { dayType: 'teletreball' as const },
   },
   schedulePeriods: [

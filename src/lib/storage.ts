@@ -18,8 +18,8 @@ export function getUserConfig(): UserConfig {
         parsed.weeklyConfig = {
           monday: { dayType: parsed.weeklyConfig.monday?.dayType || 'presencial' },
           tuesday: { dayType: parsed.weeklyConfig.tuesday?.dayType || 'presencial' },
-          wednesday: { dayType: parsed.weeklyConfig.wednesday?.dayType || 'teletreball' },
-          thursday: { dayType: parsed.weeklyConfig.thursday?.dayType || 'presencial' },
+          wednesday: { dayType: parsed.weeklyConfig.wednesday?.dayType || 'presencial' },
+          thursday: { dayType: parsed.weeklyConfig.thursday?.dayType || 'teletreball' },
           friday: { dayType: parsed.weeklyConfig.friday?.dayType || 'teletreball' },
         };
       }
