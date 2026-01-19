@@ -72,6 +72,22 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
     return null;
   };
 
+  const formatAbsenceHours = (hours: number): string => {
+    const h = Math.floor(hours);
+    const m = Math.round((hours % 1) * 60);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  };
+
+  const getAbsenceDisplay = () => {
+    if (dayData?.dayStatus === 'assumpte_propi' && dayData.apHours) {
+      return `AP = ${formatAbsenceHours(dayData.apHours)}`;
+    }
+    if (dayData?.dayStatus === 'flexibilitat' && dayData.flexHours) {
+      return `FX = ${formatAbsenceHours(dayData.flexHours)}`;
+    }
+    return null;
+  };
+
   return (
     <button
       onClick={onClick}
@@ -100,6 +116,11 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
             {dayData?.startTime && dayData?.endTime && (
               <div className="text-xs opacity-80">
                 {dayData.startTime} - {dayData.endTime}
+              </div>
+            )}
+            {getAbsenceDisplay() && (
+              <div className="text-xs opacity-80 font-medium">
+                {getAbsenceDisplay()}
               </div>
             )}
             <div className="absolute bottom-2 right-2 flex items-center gap-1">
