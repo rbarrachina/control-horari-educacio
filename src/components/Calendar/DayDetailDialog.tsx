@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import type { DayData, UserConfig, DayStatus, RequestStatus } from '@/types';
-import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime } from '@/lib/timeCalculations';
+import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime, parseTimeToHours } from '@/lib/timeCalculations';
 import { DAY_NAMES_CA, MAX_FLEXIBILITY_HOURS, MONTH_NAMES_CA } from '@/lib/constants';
 import { Home, Building2, Trash2 } from 'lucide-react';
 
@@ -25,7 +25,8 @@ type AbsenceType = 'cap' | 'vacances' | 'assumpte_propi' | 'flexibilitat';
 
 export function DayDetailDialog({ date, dayData, config, requestedVacationDays, onClose, onSave }: DayDetailDialogProps) {
   const [startTime, setStartTime] = useState(config.defaultStartTime);
-  const [endTime, setEndTime] = useState(config.defaultEndTime);
+  const [endTime, setEndTime] = useState('');
+  const [isEndTimeAuto, setIsEndTimeAuto] = useState(true);
   const [absenceType, setAbsenceType] = useState<AbsenceType>('cap');
   const [isApproved, setIsApproved] = useState(false);
   const [absenceHours, setAbsenceHours] = useState(0);
@@ -33,10 +34,29 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
   const [vacationError, setVacationError] = useState('');
   const [apError, setApError] = useState('');
 
+  const theoreticalHours = date ? getTheoreticalHoursForDate(date, config) : 0;
+
+  const getCalculatedEndTime = (start: string) => {
+    if (!start) return '';
+    const endHours = parseTimeToHours(start) + theoreticalHours;
+    return formatHoursToTime(endHours);
+  };
+
   useEffect(() => {
     if (dayData) {
-      setStartTime(dayData.startTime === null ? '' : (dayData.startTime ?? config.defaultStartTime));
-      setEndTime(dayData.endTime === null ? '' : (dayData.endTime ?? config.defaultEndTime));
+      const resolvedStart = dayData.startTime === null ? '' : (dayData.startTime ?? config.defaultStartTime);
+      setStartTime(resolvedStart);
+
+      if (dayData.endTime === null) {
+        setEndTime('');
+        setIsEndTimeAuto(false);
+      } else if (dayData.endTime) {
+        setEndTime(dayData.endTime);
+        setIsEndTimeAuto(false);
+      } else {
+        setEndTime(getCalculatedEndTime(resolvedStart));
+        setIsEndTimeAuto(true);
+      }
       
       // Determine absence type from dayStatus
       if (dayData.dayStatus === 'vacances') {
@@ -58,7 +78,8 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
       setIsApproved(dayData.requestStatus === 'aprovat');
     } else {
       setStartTime(config.defaultStartTime);
-      setEndTime(config.defaultEndTime);
+      setEndTime(getCalculatedEndTime(config.defaultStartTime));
+      setIsEndTimeAuto(true);
       setAbsenceType('cap');
       setIsApproved(false);
       setAbsenceHours(0);
@@ -70,7 +91,6 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
 
   if (!date) return null;
 
-  const theoreticalHours = getTheoreticalHoursForDate(date, config);
   const dayType = getDayTypeForDate(date, config);
   const actualWorkedHours = startTime && endTime ? calculateWorkedHours(startTime, endTime) : 0;
   const absenceHoursDecimal = absenceHours + (absenceMinutes / 60);
@@ -188,7 +208,13 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                   id="startTime"
                   type="time"
                   value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
+                  onChange={(e) => {
+                    const nextStart = e.target.value;
+                    setStartTime(nextStart);
+                    if (isEndTimeAuto) {
+                      setEndTime(getCalculatedEndTime(nextStart));
+                    }
+                  }}
                   min="07:30"
                 />
               </div>
@@ -198,7 +224,10 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                   id="endTime"
                   type="time"
                   value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
+                  onChange={(e) => {
+                    setEndTime(e.target.value);
+                    setIsEndTimeAuto(false);
+                  }}
                 />
               </div>
               <Button
@@ -208,6 +237,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                 onClick={() => {
                   setStartTime('');
                   setEndTime('');
+                  setIsEndTimeAuto(false);
                 }}
                 className="text-muted-foreground hover:text-destructive"
                 title="Esborrar horari"
@@ -224,7 +254,8 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
               variant="outline"
               onClick={() => {
                 setStartTime(config.defaultStartTime);
-                setEndTime(config.defaultEndTime);
+                setEndTime(getCalculatedEndTime(config.defaultStartTime));
+                setIsEndTimeAuto(true);
               }}
               className="w-full"
             >

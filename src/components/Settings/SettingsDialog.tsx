@@ -289,25 +289,17 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
           </TabsContent>
 
           <TabsContent value="schedule" className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="space-y-2">
-                <Label htmlFor="defaultStart">Hora d'inici per defecte</Label>
-                <Input
-                  id="defaultStart"
-                  type="time"
-                  value={localConfig.defaultStartTime}
-                  onChange={(e) => setLocalConfig(prev => ({ ...prev, defaultStartTime: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="defaultEnd">Hora de fi per defecte</Label>
-                <Input
-                  id="defaultEnd"
-                  type="time"
-                  value={localConfig.defaultEndTime}
-                  onChange={(e) => setLocalConfig(prev => ({ ...prev, defaultEndTime: e.target.value }))}
-                />
-              </div>
+            <div className="mb-6 flex items-center gap-3">
+              <Label htmlFor="defaultStart" className="min-w-[200px]">
+                Hora d'inici per defecte
+              </Label>
+              <Input
+                id="defaultStart"
+                type="time"
+                value={localConfig.defaultStartTime}
+                onChange={(e) => setLocalConfig(prev => ({ ...prev, defaultStartTime: e.target.value }))}
+                className="max-w-[160px]"
+              />
             </div>
 
             <div className="space-y-3">
