@@ -33,7 +33,9 @@ export function getDayOfWeekKey(date: Date): keyof WeeklyConfig | null {
 }
 
 export function getScheduleTypeForDate(date: Date, config: UserConfig): ScheduleType | null {
-  const periods = config.schedulePeriods || [];
+  const periods = [...(config.schedulePeriods || [])].sort(
+    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+  );
   for (const period of periods) {
     const start = parseISO(period.startDate);
     const end = parseISO(period.endDate);
