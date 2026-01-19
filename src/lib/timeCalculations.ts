@@ -92,12 +92,14 @@ export function calculateWeeklySummary(
     }
     
     const theoretical = getTheoreticalHoursForDate(day, config);
+    if (dayData?.dayStatus === 'vacances') {
+      return;
+    }
+    
     theoreticalHours += theoretical;
     
     if (dayData) {
-      if (dayData.dayStatus === 'vacances') {
-        workedHours += theoretical;
-      } else if (dayData.dayStatus === 'assumpte_propi') {
+      if (dayData.dayStatus === 'assumpte_propi') {
         workedHours += (dayData.apHours || 0) + calculateWorkedHours(dayData.startTime, dayData.endTime);
       } else if (dayData.dayStatus === 'flexibilitat') {
         workedHours += (dayData.flexHours || 0) + calculateWorkedHours(dayData.startTime, dayData.endTime);
