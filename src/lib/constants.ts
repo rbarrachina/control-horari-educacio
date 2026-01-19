@@ -20,7 +20,6 @@ export const DEFAULT_USER_CONFIG = {
   firstName: '',
   lastName: '',
   defaultStartTime: '07:30',
-  defaultEndTime: '15:00',
   weeklyConfig: {
     monday: { dayType: 'presencial' as const },
     tuesday: { dayType: 'presencial' as const },
