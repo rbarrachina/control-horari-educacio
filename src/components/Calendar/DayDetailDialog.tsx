@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import type { DayData, UserConfig, DayStatus, RequestStatus } from '@/types';
 import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime } from '@/lib/timeCalculations';
-import { DAY_NAMES_CA, MONTH_NAMES_CA } from '@/lib/constants';
+import { DAY_NAMES_CA, MAX_FLEXIBILITY_HOURS, MONTH_NAMES_CA } from '@/lib/constants';
 import { Home, Building2, Trash2 } from 'lucide-react';
 
 interface DayDetailDialogProps {
@@ -69,6 +69,9 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
   const dayType = getDayTypeForDate(date, config);
   const actualWorkedHours = startTime && endTime ? calculateWorkedHours(startTime, endTime) : 0;
   const absenceHoursDecimal = absenceHours + (absenceMinutes / 60);
+  const previousFlexHours = dayData?.dayStatus === 'flexibilitat' ? (dayData.flexHours || 0) : 0;
+  const availableFlexHours = Math.min(MAX_FLEXIBILITY_HOURS, config.flexibilityHours + previousFlexHours);
+  const maxFlexHours = Math.min(theoreticalHours, availableFlexHours);
   
   // Total worked hours = actual worked + AP/FX hours (if applicable)
   const totalWorkedHours = absenceType === 'vacances' 
@@ -110,6 +113,9 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
   };
 
   const handleSave = () => {
+    const cappedFlexHours = absenceType === 'flexibilitat'
+      ? Math.min(getAbsenceHoursDecimal(), maxFlexHours)
+      : undefined;
     const newDayData: DayData = {
       date: format(date, 'yyyy-MM-dd'),
       theoreticalHours,
@@ -119,7 +125,7 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
       dayStatus: getDayStatus(),
       requestStatus: getRequestStatus(),
       apHours: absenceType === 'assumpte_propi' ? getAbsenceHoursDecimal() : undefined,
-      flexHours: absenceType === 'flexibilitat' ? getAbsenceHoursDecimal() : undefined,
+      flexHours: absenceType === 'flexibilitat' ? cappedFlexHours : undefined,
     };
     onSave(newDayData);
     onClose();
@@ -234,7 +240,7 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
                     id="absenceHours"
                     type="number"
                     min="0"
-                    max={Math.floor(theoreticalHours)}
+                    max={absenceType === 'flexibilitat' ? Math.floor(maxFlexHours) : Math.floor(theoreticalHours)}
                     value={absenceHours}
                     onChange={(e) => setAbsenceHours(parseInt(e.target.value) || 0)}
                   />
