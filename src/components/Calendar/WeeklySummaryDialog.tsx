@@ -33,6 +33,8 @@ export function WeeklySummaryDialog({
   if (!weekStart || !weekEnd) return null;
 
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  const hasAnyData = days.some((day) => !!daysData[format(day, 'yyyy-MM-dd')]);
+  if (!hasAnyData) return null;
   const weekNumber = getWeek(weekStart, { weekStartsOn: 1 });
 
   const getDayName = (date: Date) => {

@@ -14,10 +14,14 @@ interface WeeklySummaryIconProps {
 
 export function WeeklySummaryIcon({ weekStart, weekEnd, daysData, config, onClick }: WeeklySummaryIconProps) {
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  const hasAnyData = days.some((day) => !!daysData[format(day, 'yyyy-MM-dd')]);
+
+  if (!hasAnyData) {
+    return null;
+  }
   
   // Check if all workdays have data or are properly handled
   let allComplete = true;
-  let hasAnyData = false;
   let totalTheoretical = 0;
   let totalWorked = 0;
   
@@ -45,9 +49,7 @@ export function WeeklySummaryIcon({ weekStart, weekEnd, daysData, config, onClic
       allComplete = false;
       continue;
     }
-    
-    hasAnyData = true;
-    
+
     // Check if pending approval
     if (dayData.requestStatus === 'pendent') {
       allComplete = false;
@@ -59,11 +61,6 @@ export function WeeklySummaryIcon({ weekStart, weekEnd, daysData, config, onClic
     }
   }
   
-  // If no data at all, show yellow
-  if (!hasAnyData) {
-    allComplete = false;
-  }
-
   const difference = totalWorked - totalTheoretical;
   const hasNegativeDifference = difference < 0;
   
