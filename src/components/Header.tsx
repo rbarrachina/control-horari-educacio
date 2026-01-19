@@ -21,7 +21,7 @@ export function Header({ config, onOpenSettings }: HeaderProps) {
               <Clock className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">Control Horari</h1>
+              <h1 className="text-xl font-bold text-foreground">Control Horari Educació</h1>
               <p className="text-sm text-muted-foreground">
                 {userName} · Any 2026
               </p>
