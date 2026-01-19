@@ -28,9 +28,13 @@ export function Header({ config, onOpenSettings }: HeaderProps) {
             </div>
           </div>
           
-          <Button variant="outline" onClick={onOpenSettings} className="gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onOpenSettings}
+            aria-label="Configuració"
+          >
             <Settings className="w-4 h-4" />
-            Configuració
           </Button>
         </div>
       </div>
