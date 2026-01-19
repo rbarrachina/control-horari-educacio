@@ -6,12 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Download, Upload, Trash2, AlertTriangle, AlertCircle } from 'lucide-react';
+import { X, Plus, Download, Upload, Trash2, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import type { UserConfig, DayType, SchedulePeriod, ScheduleType } from '@/types';
 import { DAYS_OF_WEEK, DAY_NAMES_CA, MONTH_NAMES_CA, SCHEDULE_HOURS } from '@/lib/constants';
 import { format, parseISO, eachDayOfInterval, isWithinInterval } from 'date-fns';
 import { exportAllData, importAllData, resetAllData, type ExportData } from '@/lib/storage';
+import { safeValidateExportData, MAX_IMPORT_FILE_SIZE } from '@/lib/validation';
 import { toast } from 'sonner';
 
 interface SettingsDialogProps {
@@ -218,19 +219,45 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Check file size limit
+    if (file.size > MAX_IMPORT_FILE_SIZE) {
+      toast.error(`El fitxer és massa gran. Màxim: ${MAX_IMPORT_FILE_SIZE / 1024 / 1024}MB`);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const data = JSON.parse(e.target?.result as string) as ExportData;
-        if (importAllData(data)) {
+        const rawData = JSON.parse(e.target?.result as string);
+        
+        // Validate data against schema
+        const validationResult = safeValidateExportData(rawData);
+        
+        if (!validationResult.success) {
+          toast.error('error' in validationResult ? validationResult.error : 'Dades invàlides');
+          return;
+        }
+        
+        // Data is now validated, safe to import
+        if (importAllData(validationResult.data as ExportData)) {
           toast.success('Dades importades correctament. Recarregant...');
           setTimeout(() => window.location.reload(), 1000);
         } else {
-          toast.error('Format de dades invàlid');
+          toast.error('Error important les dades');
         }
       } catch (error) {
-        toast.error('Error llegint el fitxer');
+        if (error instanceof SyntaxError) {
+          toast.error('El fitxer no és un JSON vàlid');
+        } else {
+          toast.error('Error llegint el fitxer');
+        }
       }
+    };
+    reader.onerror = () => {
+      toast.error('Error llegint el fitxer');
     };
     reader.readAsText(file);
     if (fileInputRef.current) {
@@ -512,6 +539,19 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
           </TabsContent>
 
           <TabsContent value="data" className="space-y-6 pt-4">
+            {/* Privacy Notice */}
+            <div className="flex gap-3 p-3 bg-muted/50 rounded-lg border">
+              <Info className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">Avís de privacitat</p>
+                <p>
+                  Totes les dades es guarden localment al teu navegador (localStorage). 
+                  No s'envien a cap servidor extern. Fes còpies de seguretat regularment 
+                  i esborra les dades si fas servir un ordinador compartit.
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Exportar dades</h3>
               <p className="text-sm text-muted-foreground">
@@ -526,7 +566,7 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
             <div className="border-t pt-4 space-y-4">
               <h3 className="text-lg font-semibold">Importar dades</h3>
               <p className="text-sm text-muted-foreground">
-                Carrega un fitxer JSON exportat anteriorment. Això sobreescriurà les dades actuals.
+                Carrega un fitxer JSON exportat anteriorment (màxim 5MB). Això sobreescriurà les dades actuals.
               </p>
               <input
                 ref={fileInputRef}
