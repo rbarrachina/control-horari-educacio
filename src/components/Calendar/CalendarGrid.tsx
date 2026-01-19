@@ -149,7 +149,6 @@ export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProp
         daysData={daysData}
         config={config}
         onClose={() => setSelectedWeek(null)}
-        onSaveDay={onDayUpdate}
       />
     </div>
   );
