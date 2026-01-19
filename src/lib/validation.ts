@@ -51,7 +51,6 @@ const UserConfigSchema = z.object({
   firstName: z.string().max(100).default(''),
   lastName: z.string().max(100).default(''),
   defaultStartTime: z.string().regex(/^\d{2}:\d{2}$/).default('08:00'),
-  defaultEndTime: z.string().regex(/^\d{2}:\d{2}$/).default('15:30'),
   weeklyConfig: WeeklyConfigSchema,
   schedulePeriods: z.array(SchedulePeriodSchema).max(100),
   totalVacationDays: z.number().min(0).max(365),
