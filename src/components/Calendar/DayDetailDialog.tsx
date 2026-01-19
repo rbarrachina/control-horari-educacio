@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import type { DayData, UserConfig, DayStatus, RequestStatus } from '@/types';
-import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday } from '@/lib/timeCalculations';
+import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime } from '@/lib/timeCalculations';
 import { DAY_NAMES_CA, MONTH_NAMES_CA } from '@/lib/constants';
+import { Home, Building2 } from 'lucide-react';
 
 interface DayDetailDialogProps {
   date: Date | null;
@@ -19,29 +20,46 @@ interface DayDetailDialogProps {
   onSave: (dayData: DayData) => void;
 }
 
+type AbsenceType = 'cap' | 'vacances' | 'assumpte_propi' | 'flexibilitat';
+
 export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayDetailDialogProps) {
   const [startTime, setStartTime] = useState(config.defaultStartTime);
   const [endTime, setEndTime] = useState(config.defaultEndTime);
-  const [dayStatus, setDayStatus] = useState<DayStatus>('laboral');
-  const [requestStatus, setRequestStatus] = useState<RequestStatus>(null);
-  const [apHours, setApHours] = useState(0);
-  const [flexHours, setFlexHours] = useState(0);
+  const [absenceType, setAbsenceType] = useState<AbsenceType>('cap');
+  const [isApproved, setIsApproved] = useState(false);
+  const [absenceHours, setAbsenceHours] = useState(0);
+  const [absenceMinutes, setAbsenceMinutes] = useState(0);
 
   useEffect(() => {
     if (dayData) {
       setStartTime(dayData.startTime || config.defaultStartTime);
       setEndTime(dayData.endTime || config.defaultEndTime);
-      setDayStatus(dayData.dayStatus);
-      setRequestStatus(dayData.requestStatus);
-      setApHours(dayData.apHours || 0);
-      setFlexHours(dayData.flexHours || 0);
+      
+      // Determine absence type from dayStatus
+      if (dayData.dayStatus === 'vacances') {
+        setAbsenceType('vacances');
+      } else if (dayData.dayStatus === 'assumpte_propi') {
+        setAbsenceType('assumpte_propi');
+        const hours = dayData.apHours || 0;
+        setAbsenceHours(Math.floor(hours));
+        setAbsenceMinutes(Math.round((hours % 1) * 60));
+      } else if (dayData.dayStatus === 'flexibilitat') {
+        setAbsenceType('flexibilitat');
+        const hours = dayData.flexHours || 0;
+        setAbsenceHours(Math.floor(hours));
+        setAbsenceMinutes(Math.round((hours % 1) * 60));
+      } else {
+        setAbsenceType('cap');
+      }
+      
+      setIsApproved(dayData.requestStatus === 'aprovat');
     } else {
       setStartTime(config.defaultStartTime);
       setEndTime(config.defaultEndTime);
-      setDayStatus('laboral');
-      setRequestStatus(null);
-      setApHours(0);
-      setFlexHours(0);
+      setAbsenceType('cap');
+      setIsApproved(false);
+      setAbsenceHours(0);
+      setAbsenceMinutes(0);
     }
   }, [dayData, config, date]);
 
@@ -59,17 +77,40 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
     return DAY_NAMES_CA[dayKeys[dayIndex]];
   };
 
+  const formatHoursMinutes = (hours: number): string => {
+    const h = Math.floor(Math.abs(hours));
+    const m = Math.round((Math.abs(hours) % 1) * 60);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  };
+
+  const getDayStatus = (): DayStatus => {
+    if (holiday) return 'festiu';
+    if (absenceType === 'vacances') return 'vacances';
+    if (absenceType === 'assumpte_propi') return 'assumpte_propi';
+    if (absenceType === 'flexibilitat') return 'flexibilitat';
+    return 'laboral';
+  };
+
+  const getRequestStatus = (): RequestStatus => {
+    if (absenceType === 'cap') return null;
+    return isApproved ? 'aprovat' : 'pendent';
+  };
+
+  const getAbsenceHoursDecimal = (): number => {
+    return absenceHours + (absenceMinutes / 60);
+  };
+
   const handleSave = () => {
     const newDayData: DayData = {
       date: format(date, 'yyyy-MM-dd'),
       theoreticalHours,
-      startTime: dayStatus === 'vacances' ? null : startTime,
-      endTime: dayStatus === 'vacances' ? null : endTime,
+      startTime: absenceType === 'vacances' ? null : startTime,
+      endTime: absenceType === 'vacances' ? null : endTime,
       dayType,
-      dayStatus,
-      requestStatus,
-      apHours: dayStatus === 'assumpte_propi' ? apHours : undefined,
-      flexHours: dayStatus === 'flexibilitat' ? flexHours : undefined,
+      dayStatus: getDayStatus(),
+      requestStatus: getRequestStatus(),
+      apHours: absenceType === 'assumpte_propi' ? getAbsenceHoursDecimal() : undefined,
+      flexHours: absenceType === 'flexibilitat' ? getAbsenceHoursDecimal() : undefined,
     };
     onSave(newDayData);
     onClose();
@@ -85,31 +126,21 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          <div className="flex items-center gap-2">
-            <Badge variant={dayType === 'presencial' ? 'default' : 'secondary'}>
-              {dayType === 'presencial' ? '🏢 Presencial' : '🏠 Teletreball'}
+          {/* Day type and theoretical hours */}
+          <div className="flex items-center gap-3">
+            <Badge variant={dayType === 'presencial' ? 'default' : 'secondary'} className="flex items-center gap-1.5">
+              {dayType === 'presencial' ? (
+                <><Building2 className="w-3 h-3" /> Presencial</>
+              ) : (
+                <><Home className="w-3 h-3" /> Teletreball</>
+              )}
             </Badge>
-            <Badge variant="outline">{theoreticalHours}h teòriques</Badge>
+            <Badge variant="outline">{formatHoursMinutes(theoreticalHours)}</Badge>
             {holiday && <Badge variant="destructive">Festiu</Badge>}
           </div>
 
-          <div className="space-y-3">
-            <Label>Tipus de dia</Label>
-            <Select value={dayStatus} onValueChange={(v) => setDayStatus(v as DayStatus)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="laboral">Dia laboral</SelectItem>
-                <SelectItem value="vacances">Vacances</SelectItem>
-                <SelectItem value="assumpte_propi">Assumpte propi</SelectItem>
-                <SelectItem value="flexibilitat">Flexibilitat horària</SelectItem>
-                <SelectItem value="festiu">Festiu</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {dayStatus !== 'vacances' && dayStatus !== 'festiu' && (
+          {/* Start and end time */}
+          {absenceType !== 'vacances' && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="startTime">Hora d'inici</Label>
@@ -133,65 +164,94 @@ export function DayDetailDialog({ date, dayData, config, onClose, onSave }: DayD
             </div>
           )}
 
-          {dayStatus === 'assumpte_propi' && (
-            <div className="space-y-2">
-              <Label htmlFor="apHours">Hores d'AP utilitzades</Label>
-              <Input
-                id="apHours"
-                type="number"
-                step="0.5"
-                min="0"
-                max={theoreticalHours}
-                value={apHours}
-                onChange={(e) => setApHours(parseFloat(e.target.value) || 0)}
-              />
-            </div>
-          )}
+          {/* Absence type selector */}
+          <div className="space-y-3">
+            <Label>Absència</Label>
+            <Select value={absenceType} onValueChange={(v) => {
+              setAbsenceType(v as AbsenceType);
+              if (v === 'cap') {
+                setIsApproved(false);
+                setAbsenceHours(0);
+                setAbsenceMinutes(0);
+              }
+            }}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cap">Cap absència</SelectItem>
+                <SelectItem value="vacances">Vacances</SelectItem>
+                <SelectItem value="assumpte_propi">Assumpte propi (AP)</SelectItem>
+                <SelectItem value="flexibilitat">Flexibilitat horària (FX)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          {dayStatus === 'flexibilitat' && (
-            <div className="space-y-2">
-              <Label htmlFor="flexHours">Hores de flexibilitat utilitzades</Label>
-              <Input
-                id="flexHours"
-                type="number"
-                step="0.5"
-                min="0"
-                max={config.flexibilityHours}
-                value={flexHours}
-                onChange={(e) => setFlexHours(parseFloat(e.target.value) || 0)}
-              />
-            </div>
-          )}
-
-          {(dayStatus === 'vacances' || dayStatus === 'assumpte_propi' || dayStatus === 'flexibilitat') && (
-            <div className="space-y-3">
-              <Label>Estat de la sol·licitud</Label>
-              <Select 
-                value={requestStatus || 'none'} 
-                onValueChange={(v) => setRequestStatus(v === 'none' ? null : v as RequestStatus)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona estat" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sense sol·licitar</SelectItem>
-                  <SelectItem value="pendent">Pendent d'aprovació</SelectItem>
-                  <SelectItem value="aprovat">Aprovat</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {dayStatus === 'laboral' && (
-            <div className="p-4 bg-muted rounded-lg">
-              <div className="text-sm space-y-1">
-                <p>Hores treballades: <strong>{workedHours.toFixed(2)}h</strong></p>
-                <p className={difference >= 0 ? 'text-[hsl(var(--status-complete))]' : 'text-[hsl(var(--status-deficit))]'}>
-                  Diferència: <strong>{difference >= 0 ? '+' : ''}{difference.toFixed(2)}h</strong>
-                </p>
+          {/* Hours/minutes input for AP or FX */}
+          {(absenceType === 'assumpte_propi' || absenceType === 'flexibilitat') && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="absenceHours">Hores</Label>
+                  <Input
+                    id="absenceHours"
+                    type="number"
+                    min="0"
+                    max={Math.floor(theoreticalHours)}
+                    value={absenceHours}
+                    onChange={(e) => setAbsenceHours(parseInt(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="absenceMinutes">Minuts</Label>
+                  <Input
+                    id="absenceMinutes"
+                    type="number"
+                    min="0"
+                    max="59"
+                    step="5"
+                    value={absenceMinutes}
+                    onChange={(e) => setAbsenceMinutes(parseInt(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="approved"
+                  checked={isApproved}
+                  onCheckedChange={(checked) => setIsApproved(checked === true)}
+                />
+                <Label htmlFor="approved" className="text-sm cursor-pointer">
+                  Aprovat
+                </Label>
               </div>
             </div>
           )}
+
+          {/* Approval checkbox for vacances */}
+          {absenceType === 'vacances' && (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="approvedVacances"
+                checked={isApproved}
+                onCheckedChange={(checked) => setIsApproved(checked === true)}
+              />
+              <Label htmlFor="approvedVacances" className="text-sm cursor-pointer">
+                Aprovat
+              </Label>
+            </div>
+          )}
+
+          {/* Summary */}
+          <div className="p-4 bg-muted rounded-lg">
+            <div className="text-sm space-y-1">
+              <p>Hores treballades: <strong>{formatHoursMinutes(workedHours)}</strong></p>
+              <p className={difference >= 0 ? 'text-[hsl(var(--status-complete))]' : 'text-[hsl(var(--status-deficit))]'}>
+                Diferència: <strong>{difference >= 0 ? '+' : '-'}{formatHoursMinutes(difference)}</strong>
+              </p>
+            </div>
+          </div>
         </div>
 
         <DialogFooter>
