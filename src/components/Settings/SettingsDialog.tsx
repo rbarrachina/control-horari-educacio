@@ -43,7 +43,8 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
       for (const period of periods) {
         const start = parseISO(period.startDate);
         const end = parseISO(period.endDate);
-        if (isWithinInterval(day, { start, end })) {
+        const [rangeStart, rangeEnd] = start > end ? [end, start] : [start, end];
+        if (isWithinInterval(day, { start: rangeStart, end: rangeEnd })) {
           coveredDays++;
           break;
         }
@@ -90,12 +91,6 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
         updatedPeriod.scheduleType = value as ScheduleType;
       } else {
         updatedPeriod[field] = value;
-        if (field === 'startDate' && updatedPeriod.startDate > updatedPeriod.endDate) {
-          updatedPeriod.endDate = updatedPeriod.startDate;
-        }
-        if (field === 'endDate' && updatedPeriod.endDate < updatedPeriod.startDate) {
-          updatedPeriod.startDate = updatedPeriod.endDate;
-        }
       }
 
       const updatedPeriods = [...prev.schedulePeriods];
