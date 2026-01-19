@@ -26,11 +26,6 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: SettingsDialogProps) {
   const [localConfig, setLocalConfig] = useState<UserConfig>(config);
   const [newHoliday, setNewHoliday] = useState('');
-  const [newPeriod, setNewPeriod] = useState<Omit<SchedulePeriod, 'id'>>({
-    startDate: '',
-    endDate: '',
-    scheduleType: 'hivern',
-  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -38,14 +33,14 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
   }, [config]);
 
   // Validate that all days of 2026 are covered by schedule periods
-  const validateScheduleCoverage = (): { isValid: boolean; missingDays: number } => {
+  const validateScheduleCoverage = (periods: SchedulePeriod[]): { isValid: boolean; missingDays: number } => {
     const yearStart = new Date(2026, 0, 1);
     const yearEnd = new Date(2026, 11, 31);
     const allDays = eachDayOfInterval({ start: yearStart, end: yearEnd });
     
     let coveredDays = 0;
     allDays.forEach(day => {
-      for (const period of localConfig.schedulePeriods) {
+      for (const period of periods) {
         const start = parseISO(period.startDate);
         const end = parseISO(period.endDate);
         if (isWithinInterval(day, { start, end })) {
@@ -61,10 +56,46 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
     };
   };
 
-  const scheduleValidation = validateScheduleCoverage();
+  const normalizeSchedulePeriods = (periods: SchedulePeriod[]): SchedulePeriod[] => {
+    const yearStart = '2026-01-01';
+    const yearEnd = '2026-12-31';
+    const sorted = [...periods].sort(
+      (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    );
+    const primary = sorted[0] ?? {
+      id: 'default-winter',
+      startDate: yearStart,
+      endDate: yearEnd,
+      scheduleType: 'hivern',
+    };
+    const normalizedPrimary = {
+      ...primary,
+      startDate: yearStart,
+      endDate: primary.endDate || yearEnd,
+    };
+    const endDate = parseISO(normalizedPrimary.endDate);
+    const endOfYear = parseISO(yearEnd);
+    if (endDate >= endOfYear) {
+      return [normalizedPrimary];
+    }
+    const nextDay = new Date(endDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const oppositeType: ScheduleType = normalizedPrimary.scheduleType === 'estiu' ? 'hivern' : 'estiu';
+    const secondary = sorted[1];
+    const normalizedSecondary: SchedulePeriod = {
+      id: secondary?.id ?? `period-${Date.now()}`,
+      startDate: format(nextDay, 'yyyy-MM-dd'),
+      endDate: yearEnd,
+      scheduleType: oppositeType,
+    };
+    return [normalizedPrimary, normalizedSecondary];
+  };
+
+  const sortedSchedulePeriods = normalizeSchedulePeriods(localConfig.schedulePeriods);
+  const scheduleValidation = validateScheduleCoverage(sortedSchedulePeriods);
 
   const handleSave = () => {
-    onSave(localConfig);
+    onSave({ ...localConfig, schedulePeriods: sortedSchedulePeriods });
     onClose();
   };
 
@@ -80,26 +111,12 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
     }));
   };
 
-  const addSchedulePeriod = () => {
-    if (newPeriod.startDate && newPeriod.endDate) {
-      const id = `period-${Date.now()}`;
-      setLocalConfig(prev => ({
-        ...prev,
-        schedulePeriods: [...prev.schedulePeriods, { ...newPeriod, id }].sort(
-          (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-        ),
-      }));
-      setNewPeriod({ startDate: '', endDate: '', scheduleType: 'hivern' });
-    }
-  };
-
   const updateSchedulePeriod = (id: string, field: 'startDate' | 'endDate' | 'scheduleType', value: string) => {
     setLocalConfig(prev => {
       const periodIndex = prev.schedulePeriods.findIndex(p => p.id === id);
       if (periodIndex === -1) return prev;
 
       const updatedPeriod = { ...prev.schedulePeriods[periodIndex] };
-      const oldEndDate = updatedPeriod.endDate;
       
       if (field === 'scheduleType') {
         updatedPeriod.scheduleType = value as ScheduleType;
@@ -107,76 +124,11 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
         updatedPeriod[field] = value;
       }
 
-      let newPeriods = [...prev.schedulePeriods];
-      newPeriods[periodIndex] = updatedPeriod;
-
-      // If end date changed and there's a gap, create complementary period
-      if (field === 'endDate' && value !== oldEndDate) {
-        const endDate = parseISO(value);
-        const yearEnd = parseISO('2026-12-31');
-        
-        // Remove any periods that start after the new end date (we'll recreate them)
-        newPeriods = newPeriods.filter(p => p.id === id || parseISO(p.startDate) <= endDate);
-        
-        // If there's remaining year after this period, create complementary
-        if (endDate < yearEnd) {
-          const nextDay = new Date(endDate);
-          nextDay.setDate(nextDay.getDate() + 1);
-          const oppositeType: ScheduleType = updatedPeriod.scheduleType === 'estiu' ? 'hivern' : 'estiu';
-          
-          newPeriods.push({
-            id: `period-${Date.now()}`,
-            startDate: format(nextDay, 'yyyy-MM-dd'),
-            endDate: '2026-12-31',
-            scheduleType: oppositeType,
-          });
-        }
-      }
-
-      // If start date changed, adjust previous period or create one
-      if (field === 'startDate') {
-        const startDate = parseISO(value);
-        const yearStart = parseISO('2026-01-01');
-        
-        // Remove any periods that end before the new start date
-        newPeriods = newPeriods.filter(p => p.id === id || parseISO(p.endDate) >= startDate);
-        
-        // If there's a gap at the beginning of the year, create complementary
-        if (startDate > yearStart) {
-          const prevDay = new Date(startDate);
-          prevDay.setDate(prevDay.getDate() - 1);
-          const oppositeType: ScheduleType = updatedPeriod.scheduleType === 'estiu' ? 'hivern' : 'estiu';
-          
-          // Check if there's already a period covering this
-          const coveringPeriod = newPeriods.find(p => 
-            p.id !== id && 
-            parseISO(p.startDate) <= yearStart && 
-            parseISO(p.endDate) >= prevDay
-          );
-          
-          if (!coveringPeriod) {
-            newPeriods.push({
-              id: `period-${Date.now()}-start`,
-              startDate: '2026-01-01',
-              endDate: format(prevDay, 'yyyy-MM-dd'),
-              scheduleType: oppositeType,
-            });
-          }
-        }
-      }
-
-      // Sort periods by start date
-      newPeriods.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-
-      return { ...prev, schedulePeriods: newPeriods };
+      const updatedPeriods = [...prev.schedulePeriods];
+      updatedPeriods[periodIndex] = updatedPeriod;
+      const normalized = normalizeSchedulePeriods(updatedPeriods);
+      return { ...prev, schedulePeriods: normalized };
     });
-  };
-
-  const removeSchedulePeriod = (id: string) => {
-    setLocalConfig(prev => ({
-      ...prev,
-      schedulePeriods: prev.schedulePeriods.filter(p => p.id !== id),
-    }));
   };
 
   const addHoliday = () => {
@@ -408,11 +360,12 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
               )}
 
               <div className="space-y-2">
-                {localConfig.schedulePeriods.map((period) => (
+                {sortedSchedulePeriods.map((period, index) => (
                   <div key={period.id} className="flex items-center gap-2 p-3 bg-muted rounded-lg flex-wrap">
                     <Select
                       value={period.scheduleType}
                       onValueChange={(v) => updateSchedulePeriod(period.id, 'scheduleType', v)}
+                      disabled={index > 0}
                     >
                       <SelectTrigger className="w-24">
                         <SelectValue />
@@ -430,6 +383,7 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                       onChange={(e) => updateSchedulePeriod(period.id, 'startDate', e.target.value)}
                       min="2026-01-01"
                       max="2026-12-31"
+                      disabled
                     />
                     <span className="text-sm text-muted-foreground">a</span>
                     <Input
@@ -439,65 +393,13 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                       onChange={(e) => updateSchedulePeriod(period.id, 'endDate', e.target.value)}
                       min="2026-01-01"
                       max="2026-12-31"
+                      disabled={index > 0}
                     />
                     <span className="text-muted-foreground text-sm ml-auto">
                       ({SCHEDULE_HOURS[period.scheduleType]}h/dia)
                     </span>
-                    {localConfig.schedulePeriods.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => removeSchedulePeriod(period.id)}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    )}
                   </div>
                 ))}
-              </div>
-
-              <div className="flex gap-2 items-end p-3 bg-muted/50 rounded-lg">
-                <div className="space-y-1">
-                  <Label className="text-xs">Data inici</Label>
-                  <Input
-                    type="date"
-                    className="w-36"
-                    value={newPeriod.startDate}
-                    onChange={(e) => setNewPeriod(prev => ({ ...prev, startDate: e.target.value }))}
-                    min="2026-01-01"
-                    max="2026-12-31"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Data fi</Label>
-                  <Input
-                    type="date"
-                    className="w-36"
-                    value={newPeriod.endDate}
-                    onChange={(e) => setNewPeriod(prev => ({ ...prev, endDate: e.target.value }))}
-                    min="2026-01-01"
-                    max="2026-12-31"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Tipus</Label>
-                  <Select
-                    value={newPeriod.scheduleType}
-                    onValueChange={(v) => setNewPeriod(prev => ({ ...prev, scheduleType: v as ScheduleType }))}
-                  >
-                    <SelectTrigger className="w-28">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hivern">Hivern</SelectItem>
-                      <SelectItem value="estiu">Estiu</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={addSchedulePeriod} size="icon">
-                  <Plus className="w-4 h-4" />
-                </Button>
               </div>
             </div>
           </TabsContent>
