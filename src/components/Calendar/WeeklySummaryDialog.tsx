@@ -7,7 +7,7 @@ import type { DayData, UserConfig } from '@/types';
 import { 
   getTheoreticalHoursForDate, 
   getDayTypeForDate, 
-  calculateWorkedHours, 
+  calculateDayWorkedHours, 
   isHoliday, 
   isWeekend,
   formatHoursDisplay 
@@ -58,11 +58,11 @@ export function WeeklySummaryDialog({
     totalTheoretical += theoretical;
     
     if (dayData?.dayStatus === 'assumpte_propi') {
-      totalWorked += (dayData.apHours || 0) + calculateWorkedHours(dayData.startTime, dayData.endTime);
+      totalWorked += (dayData.apHours || 0) + calculateDayWorkedHours(dayData);
     } else if (dayData?.dayStatus === 'flexibilitat') {
-      totalWorked += (dayData.flexHours || 0) + calculateWorkedHours(dayData.startTime, dayData.endTime);
+      totalWorked += (dayData.flexHours || 0) + calculateDayWorkedHours(dayData);
     } else {
-      totalWorked += calculateWorkedHours(dayData?.startTime || null, dayData?.endTime || null);
+      totalWorked += calculateDayWorkedHours(dayData);
     }
   }
 
@@ -95,7 +95,10 @@ export function WeeklySummaryDialog({
         ? 'bg-[hsl(var(--status-complete)/0.15)] border-[hsl(var(--status-complete)/0.4)]'
         : 'bg-[hsl(var(--status-deficit)/0.15)] border-[hsl(var(--status-deficit)/0.4)]';
     }
-    if (!dayData?.startTime || !dayData?.endTime) {
+    const hasAnyShift = Boolean(
+      (dayData?.startTime && dayData?.endTime) || (dayData?.startTime2 && dayData?.endTime2)
+    );
+    if (!hasAnyShift) {
       return 'bg-[hsl(var(--status-weekday-empty)/0.4)] border-[hsl(var(--status-weekday-empty))]';
     }
     return worked >= theoretical
@@ -104,6 +107,18 @@ export function WeeklySummaryDialog({
   };
 
   const formatHours = (hours: number) => `${hours.toFixed(1)}h`;
+
+  const getScheduleDisplay = (dayData: DayData | undefined) => {
+    if (!dayData) return [];
+    const shifts: string[] = [];
+    if (dayData.startTime && dayData.endTime) {
+      shifts.push(`${dayData.startTime} - ${dayData.endTime}`);
+    }
+    if (dayData.startTime2 && dayData.endTime2) {
+      shifts.push(`${dayData.startTime2} - ${dayData.endTime2}`);
+    }
+    return shifts;
+  };
 
   return (
     <Dialog open={!!weekStart} onOpenChange={() => onClose()}>
@@ -128,7 +143,7 @@ export function WeeklySummaryDialog({
             const holiday = isHoliday(day, config.holidays);
             const dayType = getDayTypeForDate(day, config);
             const theoretical = getTheoreticalHoursForDate(day, config);
-            const baseWorked = calculateWorkedHours(dayData?.startTime || null, dayData?.endTime || null);
+            const baseWorked = calculateDayWorkedHours(dayData);
             const extraHours = dayData?.dayStatus === 'assumpte_propi'
               ? (dayData.apHours || 0)
               : dayData?.dayStatus === 'flexibilitat'
@@ -143,6 +158,7 @@ export function WeeklySummaryDialog({
             const StatusIcon = getDayStatusIcon(dayData, holiday);
             const statusLabel = getDayStatusLabel(dayData, holiday);
             const statusCardClass = getStatusCardClass(dayData, holiday, worked, theoretical);
+            const schedule = getScheduleDisplay(dayData);
             
             return (
               <div
@@ -183,8 +199,12 @@ export function WeeklySummaryDialog({
                       <p className="text-muted-foreground">Horari</p>
                       {holiday || dayData?.dayStatus === 'vacances' ? (
                         <p className="font-medium">—</p>
-                      ) : dayData?.startTime && dayData?.endTime ? (
-                        <p className="font-medium">{dayData.startTime} - {dayData.endTime}</p>
+                      ) : schedule.length > 0 ? (
+                        <div className="font-medium space-y-1">
+                          {schedule.map((shift) => (
+                            <div key={shift}>{shift}</div>
+                          ))}
+                        </div>
                       ) : (
                         <p className="font-medium text-muted-foreground">Sense horari</p>
                       )}

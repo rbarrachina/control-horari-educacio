@@ -20,6 +20,13 @@ export function calculateWorkedHours(startTime: string | null, endTime: string |
   return Math.max(0, end - start);
 }
 
+export function calculateDayWorkedHours(dayData: DayData | null | undefined): number {
+  if (!dayData) return 0;
+  const primary = calculateWorkedHours(dayData.startTime, dayData.endTime);
+  const secondary = calculateWorkedHours(dayData.startTime2 ?? null, dayData.endTime2 ?? null);
+  return primary + secondary;
+}
+
 export function getDayOfWeekKey(date: Date): keyof WeeklyConfig | null {
   const dayIndex = getDay(date);
   const mapping: Record<number, keyof WeeklyConfig> = {
@@ -100,11 +107,11 @@ export function calculateWeeklySummary(
     
     if (dayData) {
       if (dayData.dayStatus === 'assumpte_propi') {
-        workedHours += (dayData.apHours || 0) + calculateWorkedHours(dayData.startTime, dayData.endTime);
+        workedHours += (dayData.apHours || 0) + calculateDayWorkedHours(dayData);
       } else if (dayData.dayStatus === 'flexibilitat') {
-        workedHours += (dayData.flexHours || 0) + calculateWorkedHours(dayData.startTime, dayData.endTime);
+        workedHours += (dayData.flexHours || 0) + calculateDayWorkedHours(dayData);
       } else {
-        workedHours += calculateWorkedHours(dayData.startTime, dayData.endTime);
+        workedHours += calculateDayWorkedHours(dayData);
       }
     }
   });

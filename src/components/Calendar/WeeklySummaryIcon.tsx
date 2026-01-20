@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import type { DayData, UserConfig } from '@/types';
-import { isWeekend, isHoliday, calculateWorkedHours, getTheoreticalHoursForDate } from '@/lib/timeCalculations';
+import { isWeekend, isHoliday, calculateDayWorkedHours, getTheoreticalHoursForDate } from '@/lib/timeCalculations';
 import { format, eachDayOfInterval } from 'date-fns';
 import { CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 
@@ -37,11 +37,11 @@ export function WeeklySummaryIcon({ weekStart, weekEnd, daysData, config, onClic
       totalTheoretical += theoretical;
 
       if (dayData?.dayStatus === 'assumpte_propi') {
-        totalWorked += (dayData.apHours || 0) + calculateWorkedHours(dayData.startTime, dayData.endTime);
+        totalWorked += (dayData.apHours || 0) + calculateDayWorkedHours(dayData);
       } else if (dayData?.dayStatus === 'flexibilitat') {
-        totalWorked += (dayData.flexHours || 0) + calculateWorkedHours(dayData.startTime, dayData.endTime);
+        totalWorked += (dayData.flexHours || 0) + calculateDayWorkedHours(dayData);
       } else {
-        totalWorked += calculateWorkedHours(dayData?.startTime || null, dayData?.endTime || null);
+        totalWorked += calculateDayWorkedHours(dayData);
       }
     }
     
@@ -56,7 +56,10 @@ export function WeeklySummaryIcon({ weekStart, weekEnd, daysData, config, onClic
     }
     
     // Check if laboral day has times
-    if (dayData.dayStatus === 'laboral' && (!dayData.startTime || !dayData.endTime)) {
+    const hasAnyShift = Boolean(
+      (dayData.startTime && dayData.endTime) || (dayData.startTime2 && dayData.endTime2)
+    );
+    if (dayData.dayStatus === 'laboral' && !hasAnyShift) {
       allComplete = false;
     }
   }
