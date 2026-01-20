@@ -23,7 +23,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header config={config} onOpenSettings={() => setSettingsOpen(true)} />
+      <Header
+        config={config}
+        daysData={daysData}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         <CalendarGrid

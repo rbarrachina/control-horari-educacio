@@ -1,14 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Plane, Clock, Sparkles } from 'lucide-react';
-import type { UserConfig } from '@/types';
+import type { DayData, UserConfig } from '@/types';
 
 interface StatusSummaryProps {
   config: UserConfig;
+  daysData: Record<string, DayData>;
   variant?: 'default' | 'compact';
 }
 
-export function StatusSummary({ config, variant = 'default' }: StatusSummaryProps) {
+export function StatusSummary({ config, daysData, variant = 'default' }: StatusSummaryProps) {
   const formatDuration = (hours: number): string => {
     const wholeHours = Math.floor(hours);
     let minutes = Math.round((hours % 1) * 60);
@@ -26,19 +27,30 @@ export function StatusSummary({ config, variant = 'default' }: StatusSummaryProp
     return `${minutes} min`;
   };
 
-  const vacationProgress = (config.usedVacationDays / config.totalVacationDays) * 100;
+  const requestedVacationDays = Object.values(daysData).filter((day) => day.dayStatus === 'vacances').length;
+  const pendingVacationDays = Object.values(daysData).filter(
+    (day) => day.dayStatus === 'vacances' && day.requestStatus === 'pendent'
+  ).length;
+  const remainingVacationDays = Math.max(0, config.totalVacationDays - requestedVacationDays);
+  const vacationProgress = config.totalVacationDays > 0
+    ? (requestedVacationDays / config.totalVacationDays) * 100
+    : 0;
   const apProgress = (config.usedAPHours / config.totalAPHours) * 100;
   const flexProgress = (config.flexibilityHours / 25) * 100;
   const remainingAPHours = Math.max(0, config.totalAPHours - config.usedAPHours);
+  const vacationValue = pendingVacationDays > 0
+    ? `${remainingVacationDays} (${pendingVacationDays} per aprovar)`
+    : `${remainingVacationDays}`;
   const summaryItems = [
     {
       key: 'vacances',
       label: 'Vacances',
       icon: Plane,
       iconClassName: 'text-[hsl(var(--status-vacation))]',
-      value: (config.totalVacationDays - config.usedVacationDays).toString(),
+      value: vacationValue,
       unit: 'dies',
-      detail: `${config.usedVacationDays} de ${config.totalVacationDays} dies utilitzats`,
+      detail: `${config.usedVacationDays} aprovats de ${config.totalVacationDays} dies`
+        + (pendingVacationDays > 0 ? ` · ${pendingVacationDays} per aprovar` : ''),
       progress: vacationProgress,
     },
     {
