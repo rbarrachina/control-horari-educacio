@@ -38,13 +38,16 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
   const apProgress = (config.usedAPHours / config.totalAPHours) * 100;
   const flexProgress = (config.flexibilityHours / 25) * 100;
   const remainingAPHours = Math.max(0, config.totalAPHours - config.usedAPHours);
+  const vacationValue = pendingVacationDays > 0
+    ? `${remainingVacationDays} (${pendingVacationDays} per aprovar)`
+    : `${remainingVacationDays}`;
   const summaryItems = [
     {
       key: 'vacances',
       label: 'Vacances',
       icon: Plane,
       iconClassName: 'text-[hsl(var(--status-vacation))]',
-      value: `${remainingVacationDays} (${pendingVacationDays} per aprovar)`,
+      value: vacationValue,
       unit: 'dies',
       detail: `${config.usedVacationDays} aprovats de ${config.totalVacationDays} dies`
         + (pendingVacationDays > 0 ? ` · ${pendingVacationDays} per aprovar` : ''),
