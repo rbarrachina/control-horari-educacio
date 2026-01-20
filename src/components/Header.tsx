@@ -10,7 +10,7 @@ interface HeaderProps {
 
 export function Header({ config, onOpenSettings }: HeaderProps) {
   const userName = config.firstName 
-    ? `${config.firstName} ${config.lastName}`.trim()
+    ? config.firstName
     : 'Usuari';
 
   return (
