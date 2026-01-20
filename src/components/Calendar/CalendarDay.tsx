@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import type { DayData, UserConfig } from '@/types';
-import { calculateWorkedHours, isWeekend, isHoliday, getTheoreticalHoursForDate, getDayTypeForDate } from '@/lib/timeCalculations';
+import { calculateDayWorkedHours, isWeekend, isHoliday, getTheoreticalHoursForDate, getDayTypeForDate } from '@/lib/timeCalculations';
 import { format } from 'date-fns';
 import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check } from 'lucide-react';
 
@@ -40,11 +40,14 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
     }
     
     // No data = light grey
-    if (!dayData?.startTime || !dayData?.endTime) {
+    const hasAnyShift = Boolean(
+      (dayData?.startTime && dayData?.endTime) || (dayData?.startTime2 && dayData?.endTime2)
+    );
+    if (!hasAnyShift) {
       return 'bg-[hsl(var(--status-weekday-empty))] text-[hsl(var(--status-pending-foreground))]';
     }
     
-    const worked = calculateWorkedHours(dayData.startTime, dayData.endTime);
+    const worked = calculateDayWorkedHours(dayData);
     const theoretical = getTheoreticalHoursForDate(date, config);
     
     if (worked >= theoretical) {
@@ -88,6 +91,19 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
     return null;
   };
 
+  const getShiftDisplay = () => {
+    const shifts: string[] = [];
+    if (dayData?.startTime && dayData?.endTime) {
+      shifts.push(`${dayData.startTime} - ${dayData.endTime}`);
+    }
+    if (dayData?.startTime2 && dayData?.endTime2) {
+      shifts.push(`${dayData.startTime2} - ${dayData.endTime2}`);
+    }
+    return shifts;
+  };
+
+  const shifts = getShiftDisplay();
+
   return (
     <button
       onClick={onClick}
@@ -113,9 +129,11 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
         
         {!weekend && (
           <div className="flex-1 flex flex-col justify-end">
-            {dayData?.startTime && dayData?.endTime && (
-              <div className="text-xs opacity-80">
-                {dayData.startTime} - {dayData.endTime}
+            {shifts.length > 0 && (
+              <div className="text-xs opacity-80 space-y-0.5">
+                {shifts.map((shift) => (
+                  <div key={shift}>{shift}</div>
+                ))}
               </div>
             )}
             {getAbsenceDisplay() && (

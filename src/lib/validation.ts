@@ -21,6 +21,8 @@ const DayDataSchema = z.object({
   theoreticalHours: z.number().min(0).max(24),
   startTime: z.string().regex(/^\d{2}:\d{2}$/).nullable(),
   endTime: z.string().regex(/^\d{2}:\d{2}$/).nullable(),
+  startTime2: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
+  endTime2: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
   dayType: DayTypeSchema,
   dayStatus: DayStatusSchema,
   requestStatus: RequestStatusSchema,

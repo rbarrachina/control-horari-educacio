@@ -8,6 +8,8 @@ export interface DayData {
   theoreticalHours: number;
   startTime: string | null; // HH:mm
   endTime: string | null; // HH:mm
+  startTime2?: string | null; // HH:mm
+  endTime2?: string | null; // HH:mm
   dayType: DayType;
   dayStatus: DayStatus;
   requestStatus: RequestStatus;

@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import type { DayData, UserConfig, DayStatus, RequestStatus } from '@/types';
 import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime, parseTimeToHours } from '@/lib/timeCalculations';
 import { DAY_NAMES_CA, MAX_FLEXIBILITY_HOURS, MONTH_NAMES_CA } from '@/lib/constants';
-import { Home, Building2, Trash2 } from 'lucide-react';
+import { Home, Building2, Plus, Trash2 } from 'lucide-react';
 
 interface DayDetailDialogProps {
   date: Date | null;
@@ -26,6 +26,9 @@ type AbsenceType = 'cap' | 'vacances' | 'assumpte_propi' | 'flexibilitat';
 export function DayDetailDialog({ date, dayData, config, requestedVacationDays, onClose, onSave }: DayDetailDialogProps) {
   const [startTime, setStartTime] = useState(config.defaultStartTime);
   const [endTime, setEndTime] = useState('');
+  const [startTime2, setStartTime2] = useState('');
+  const [endTime2, setEndTime2] = useState('');
+  const [showSecondShift, setShowSecondShift] = useState(false);
   const [isEndTimeAuto, setIsEndTimeAuto] = useState(true);
   const [absenceType, setAbsenceType] = useState<AbsenceType>('cap');
   const [isApproved, setIsApproved] = useState(false);
@@ -45,7 +48,12 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
   useEffect(() => {
     if (dayData) {
       const resolvedStart = dayData.startTime === null ? '' : (dayData.startTime ?? config.defaultStartTime);
+      const resolvedStart2 = dayData.startTime2 === null ? '' : (dayData.startTime2 ?? '');
+      const resolvedEnd2 = dayData.endTime2 === null ? '' : (dayData.endTime2 ?? '');
       setStartTime(resolvedStart);
+      setStartTime2(resolvedStart2);
+      setEndTime2(resolvedEnd2);
+      setShowSecondShift(Boolean(resolvedStart2 || resolvedEnd2));
 
       if (dayData.endTime === null) {
         setEndTime('');
@@ -79,6 +87,9 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
     } else {
       setStartTime(config.defaultStartTime);
       setEndTime(getCalculatedEndTime(config.defaultStartTime));
+      setStartTime2('');
+      setEndTime2('');
+      setShowSecondShift(false);
       setIsEndTimeAuto(true);
       setAbsenceType('cap');
       setIsApproved(false);
@@ -92,7 +103,8 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
   if (!date) return null;
 
   const dayType = getDayTypeForDate(date, config);
-  const actualWorkedHours = startTime && endTime ? calculateWorkedHours(startTime, endTime) : 0;
+  const actualWorkedHours = calculateWorkedHours(startTime, endTime)
+    + calculateWorkedHours(startTime2, endTime2);
   const absenceHoursDecimal = absenceHours + (absenceMinutes / 60);
   const previousFlexHours = dayData?.dayStatus === 'flexibilitat' ? (dayData.flexHours || 0) : 0;
   const previousAPHours = dayData?.dayStatus === 'assumpte_propi' ? (dayData.apHours || 0) : 0;
@@ -166,6 +178,8 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
       theoreticalHours,
       startTime: absenceType === 'vacances' ? null : (startTime || null),
       endTime: absenceType === 'vacances' ? null : (endTime || null),
+      startTime2: absenceType === 'vacances' ? null : (startTime2 || null),
+      endTime2: absenceType === 'vacances' ? null : (endTime2 || null),
       dayType,
       dayStatus: getDayStatus(),
       requestStatus: getRequestStatus(),
@@ -200,8 +214,9 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
           </div>
 
           {/* Start and end time */}
-          {absenceType !== 'vacances' && startTime && endTime && (
-            <div className="grid grid-cols-[1fr_1fr_auto] gap-4 items-end">
+          {absenceType !== 'vacances' && (startTime || endTime || showSecondShift) && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-4 items-end">
               <div className="space-y-2">
                 <Label htmlFor="startTime">Hora d'inici</Label>
                 <Input
@@ -237,6 +252,9 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                 onClick={() => {
                   setStartTime('');
                   setEndTime('');
+                  setStartTime2('');
+                  setEndTime2('');
+                  setShowSecondShift(false);
                   setIsEndTimeAuto(false);
                 }}
                 className="text-muted-foreground hover:text-destructive"
@@ -244,17 +262,77 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
+              {!showSecondShift && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setShowSecondShift(true);
+                    setStartTime2('');
+                    setEndTime2('');
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                  title="Afegir segon tram"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+              </div>
+              {showSecondShift && (
+                <div className="grid grid-cols-[1fr_1fr_auto] gap-4 items-end">
+                  <div className="space-y-2">
+                    <Label htmlFor="startTime2">Hora d'inici (2n tram)</Label>
+                    <Input
+                      id="startTime2"
+                      type="time"
+                      value={startTime2}
+                      onChange={(e) => {
+                        setStartTime2(e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="endTime2">Hora de fi (2n tram)</Label>
+                    <Input
+                      id="endTime2"
+                      type="time"
+                      value={endTime2}
+                      onChange={(e) => {
+                        setEndTime2(e.target.value);
+                      }}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setStartTime2('');
+                      setEndTime2('');
+                      setShowSecondShift(false);
+                    }}
+                    className="text-muted-foreground hover:text-destructive"
+                    title="Esborrar segon tram"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
           {/* Show add time button when no times */}
-          {absenceType !== 'vacances' && (!startTime || !endTime) && (
+          {absenceType !== 'vacances' && !startTime && !endTime && !showSecondShift && (
             <Button
               type="button"
               variant="outline"
               onClick={() => {
                 setStartTime(config.defaultStartTime);
                 setEndTime(getCalculatedEndTime(config.defaultStartTime));
+                setStartTime2('');
+                setEndTime2('');
+                setShowSecondShift(false);
                 setIsEndTimeAuto(true);
               }}
               className="w-full"
