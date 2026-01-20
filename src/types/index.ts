@@ -35,7 +35,6 @@ export interface SchedulePeriod {
 
 export interface UserConfig {
   firstName: string;
-  lastName: string;
   defaultStartTime: string;
   defaultEndTime: string;
   weeklyConfig: WeeklyConfig;

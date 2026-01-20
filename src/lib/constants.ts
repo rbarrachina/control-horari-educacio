@@ -18,7 +18,6 @@ export const BARCELONA_HOLIDAYS_2026 = [
 
 export const DEFAULT_USER_CONFIG = {
   firstName: '',
-  lastName: '',
   defaultStartTime: '07:30',
   defaultEndTime: '15:00',
   weeklyConfig: {
