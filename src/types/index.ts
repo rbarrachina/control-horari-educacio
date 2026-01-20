@@ -34,6 +34,7 @@ export interface SchedulePeriod {
 }
 
 export interface UserConfig {
+  calendarYear: number;
   firstName: string;
   defaultStartTime: string;
   defaultEndTime: string;

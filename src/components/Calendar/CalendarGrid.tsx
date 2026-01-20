@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isToday, addMonths, subMonths, getDay } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,9 +16,14 @@ interface CalendarGridProps {
 }
 
 export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProps) {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
+  const [currentDate, setCurrentDate] = useState(new Date(config.calendarYear, 0, 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<{ start: Date; end: Date } | null>(null);
+  const calendarYear = config.calendarYear;
+
+  useEffect(() => {
+    setCurrentDate(new Date(calendarYear, 0, 1));
+  }, [calendarYear]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -29,14 +34,14 @@ export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProp
 
   const goToPreviousMonth = () => {
     const newDate = subMonths(currentDate, 1);
-    if (newDate.getFullYear() >= 2026) {
+    if (newDate.getFullYear() >= calendarYear) {
       setCurrentDate(newDate);
     }
   };
 
   const goToNextMonth = () => {
     const newDate = addMonths(currentDate, 1);
-    if (newDate.getFullYear() <= 2026) {
+    if (newDate.getFullYear() <= calendarYear) {
       setCurrentDate(newDate);
     }
   };
@@ -66,7 +71,7 @@ export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProp
           variant="outline"
           size="icon"
           onClick={goToPreviousMonth}
-          disabled={currentDate.getMonth() === 0 && currentDate.getFullYear() === 2026}
+          disabled={currentDate.getMonth() === 0 && currentDate.getFullYear() === calendarYear}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -79,7 +84,7 @@ export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProp
           variant="outline"
           size="icon"
           onClick={goToNextMonth}
-          disabled={currentDate.getMonth() === 11 && currentDate.getFullYear() === 2026}
+          disabled={currentDate.getMonth() === 11 && currentDate.getFullYear() === calendarYear}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

@@ -25,7 +25,7 @@ export function Header({ config, onOpenSettings }: HeaderProps) {
               <div>
                 <h1 className="text-xl font-bold text-foreground">Control horari</h1>
                 <p className="text-sm text-muted-foreground">
-                  {userName} · 2026
+                  {userName} · {config.calendarYear}
                 </p>
               </div>
             </div>
