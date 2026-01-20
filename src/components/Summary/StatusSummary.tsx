@@ -9,9 +9,27 @@ interface StatusSummaryProps {
 }
 
 export function StatusSummary({ config, variant = 'default' }: StatusSummaryProps) {
+  const formatDuration = (hours: number): string => {
+    const wholeHours = Math.floor(hours);
+    let minutes = Math.round((hours % 1) * 60);
+    let adjustedHours = wholeHours;
+    if (minutes === 60) {
+      adjustedHours += 1;
+      minutes = 0;
+    }
+    if (adjustedHours > 0 && minutes > 0) {
+      return `${adjustedHours}h ${minutes}min`;
+    }
+    if (adjustedHours > 0) {
+      return `${adjustedHours}h`;
+    }
+    return `${minutes} min`;
+  };
+
   const vacationProgress = (config.usedVacationDays / config.totalVacationDays) * 100;
   const apProgress = (config.usedAPHours / config.totalAPHours) * 100;
   const flexProgress = (config.flexibilityHours / 25) * 100;
+  const remainingAPHours = Math.max(0, config.totalAPHours - config.usedAPHours);
   const summaryItems = [
     {
       key: 'vacances',
@@ -28,9 +46,9 @@ export function StatusSummary({ config, variant = 'default' }: StatusSummaryProp
       label: 'Assumptes Propis',
       icon: Clock,
       iconClassName: 'text-primary',
-      value: (config.totalAPHours - config.usedAPHours).toFixed(1),
-      unit: 'hores',
-      detail: `${config.usedAPHours.toFixed(1)} de ${config.totalAPHours} hores utilitzades`,
+      value: formatDuration(remainingAPHours),
+      unit: '',
+      detail: `${formatDuration(config.usedAPHours)} de ${formatDuration(config.totalAPHours)} utilitzades`,
       progress: apProgress,
     },
     {
@@ -38,8 +56,8 @@ export function StatusSummary({ config, variant = 'default' }: StatusSummaryProp
       label: 'Flexibilitat Horària',
       icon: Sparkles,
       iconClassName: 'text-[hsl(var(--status-complete))]',
-      value: config.flexibilityHours.toFixed(1),
-      unit: 'hores',
+      value: formatDuration(config.flexibilityHours),
+      unit: '',
       detail: 'FX solicitades amb validació',
       progress: flexProgress,
     },
@@ -61,7 +79,9 @@ export function StatusSummary({ config, variant = 'default' }: StatusSummaryProp
               </div>
               <div className="text-sm font-semibold text-foreground">
                 {item.value}
-                <span className="text-xs font-normal text-muted-foreground"> {item.unit}</span>
+                {item.unit && (
+                  <span className="text-xs font-normal text-muted-foreground"> {item.unit}</span>
+                )}
               </div>
             </div>
           );
@@ -84,7 +104,9 @@ export function StatusSummary({ config, variant = 'default' }: StatusSummaryProp
                 </CardTitle>
                 <div className="text-base font-semibold">
                   {item.value}
-                  <span className="text-sm font-normal text-muted-foreground"> {item.unit}</span>
+                  {item.unit && (
+                    <span className="text-sm font-normal text-muted-foreground"> {item.unit}</span>
+                  )}
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">{item.detail}</p>
