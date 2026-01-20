@@ -77,8 +77,19 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
 
   const formatAbsenceHours = (hours: number): string => {
     const h = Math.floor(hours);
-    const m = Math.round((hours % 1) * 60);
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    let m = Math.round((hours % 1) * 60);
+    let adjustedHours = h;
+    if (m === 60) {
+      adjustedHours += 1;
+      m = 0;
+    }
+    if (adjustedHours > 0 && m > 0) {
+      return `${adjustedHours}h ${m}min`;
+    }
+    if (adjustedHours > 0) {
+      return `${adjustedHours}h`;
+    }
+    return `${m} min`;
   };
 
   const getAbsenceDisplay = () => {
