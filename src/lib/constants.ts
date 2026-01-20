@@ -16,7 +16,10 @@ export const BARCELONA_HOLIDAYS_2026 = [
   '2026-12-26', // Sant Esteve
 ];
 
+export const DEFAULT_CALENDAR_YEAR = 2026;
+
 export const DEFAULT_USER_CONFIG = {
+  calendarYear: DEFAULT_CALENDAR_YEAR,
   firstName: '',
   defaultStartTime: '07:30',
   defaultEndTime: '15:00',
@@ -30,8 +33,8 @@ export const DEFAULT_USER_CONFIG = {
   schedulePeriods: [
     {
       id: 'default-winter',
-      startDate: '2026-01-01',
-      endDate: '2026-12-31',
+      startDate: `${DEFAULT_CALENDAR_YEAR}-01-01`,
+      endDate: `${DEFAULT_CALENDAR_YEAR}-12-31`,
       scheduleType: 'hivern' as const,
     },
   ],

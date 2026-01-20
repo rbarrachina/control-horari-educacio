@@ -10,7 +10,7 @@ import { X, Plus, Download, Upload, Trash2, AlertTriangle, AlertCircle, Info } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import type { UserConfig, DayType, SchedulePeriod, ScheduleType } from '@/types';
 import { DAYS_OF_WEEK, DAY_NAMES_CA, MONTH_NAMES_CA, SCHEDULE_HOURS } from '@/lib/constants';
-import { format, parseISO, eachDayOfInterval, isWithinInterval } from 'date-fns';
+import { format, parseISO, eachDayOfInterval, isWithinInterval, endOfMonth } from 'date-fns';
 import { exportAllData, importAllData, resetAllData, type ExportData } from '@/lib/storage';
 import { safeValidateExportData, MAX_IMPORT_FILE_SIZE } from '@/lib/validation';
 import { toast } from 'sonner';
@@ -32,10 +32,47 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
     setLocalConfig(config);
   }, [config]);
 
-  // Validate that all days of 2026 are covered by schedule periods
+  const getYearBounds = (year: number) => ({
+    start: new Date(year, 0, 1),
+    end: new Date(year, 11, 31),
+    startString: format(new Date(year, 0, 1), 'yyyy-MM-dd'),
+    endString: format(new Date(year, 11, 31), 'yyyy-MM-dd'),
+  });
+
+  const shiftDateToYear = (date: string, year: number) => {
+    const parsed = parseISO(date);
+    const monthIndex = parsed.getMonth();
+    const day = parsed.getDate();
+    let shifted = new Date(year, monthIndex, day);
+    if (shifted.getMonth() !== monthIndex) {
+      shifted = endOfMonth(new Date(year, monthIndex, 1));
+    }
+    return format(shifted, 'yyyy-MM-dd');
+  };
+
+  const handleCalendarYearChange = (year: number) => {
+    setLocalConfig(prev => {
+      if (prev.calendarYear === year || Number.isNaN(year)) {
+        return prev;
+      }
+      const updatedPeriods = prev.schedulePeriods.map(period => ({
+        ...period,
+        startDate: shiftDateToYear(period.startDate, year),
+        endDate: shiftDateToYear(period.endDate, year),
+      }));
+      const updatedHolidays = prev.holidays.map(holiday => shiftDateToYear(holiday, year));
+      return {
+        ...prev,
+        calendarYear: year,
+        schedulePeriods: sortSchedulePeriods(updatedPeriods),
+        holidays: Array.from(new Set(updatedHolidays)).sort(),
+      };
+    });
+  };
+
+  // Validate that all days of the selected year are covered by schedule periods
   const validateScheduleCoverage = (periods: SchedulePeriod[]): { isValid: boolean; missingDays: number } => {
-    const yearStart = new Date(2026, 0, 1);
-    const yearEnd = new Date(2026, 11, 31);
+    const { start: yearStart, end: yearEnd } = getYearBounds(localConfig.calendarYear);
     const allDays = eachDayOfInterval({ start: yearStart, end: yearEnd });
     
     let coveredDays = 0;
@@ -62,6 +99,7 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
 
   const sortedSchedulePeriods = sortSchedulePeriods(localConfig.schedulePeriods);
   const scheduleValidation = validateScheduleCoverage(sortedSchedulePeriods);
+  const yearBounds = getYearBounds(localConfig.calendarYear);
 
   const handleSave = () => {
     onSave({ ...localConfig, schedulePeriods: sortedSchedulePeriods });
@@ -102,9 +140,9 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
   const addSchedulePeriod = () => {
     setLocalConfig(prev => {
       const sorted = sortSchedulePeriods(prev.schedulePeriods);
-      const yearEnd = '2026-12-31';
+      const { endString: yearEnd, startString: yearStart } = getYearBounds(prev.calendarYear);
       const lastPeriod = sorted[sorted.length - 1];
-      const lastEndDate = lastPeriod ? parseISO(lastPeriod.endDate) : parseISO('2026-01-01');
+      const lastEndDate = lastPeriod ? parseISO(lastPeriod.endDate) : parseISO(yearStart);
       if (lastPeriod && lastPeriod.endDate >= yearEnd) {
         return prev;
       }
@@ -253,6 +291,25 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
+                <Label htmlFor="calendarYear">Any del calendari</Label>
+                <Input
+                  id="calendarYear"
+                  type="number"
+                  min={1900}
+                  max={2200}
+                  value={localConfig.calendarYear}
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      return;
+                    }
+                    handleCalendarYearChange(Number(e.target.value));
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label htmlFor="vacationDays">Dies de vacances totals</Label>
                 <Input
                   id="vacationDays"
@@ -322,7 +379,7 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                   size="sm"
                   variant="outline"
                   onClick={addSchedulePeriod}
-                  disabled={sortedSchedulePeriods[sortedSchedulePeriods.length - 1]?.endDate >= '2026-12-31'}
+                  disabled={sortedSchedulePeriods[sortedSchedulePeriods.length - 1]?.endDate >= getYearBounds(localConfig.calendarYear).endString}
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Afegir franja
@@ -357,8 +414,8 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                       className="w-36"
                       value={period.startDate}
                       onChange={(e) => updateSchedulePeriod(period.id, 'startDate', e.target.value)}
-                      min="2026-01-01"
-                      max="2026-12-31"
+                      min={yearBounds.startString}
+                      max={yearBounds.endString}
                     />
                     <span className="text-sm text-muted-foreground">a</span>
                     <Input
@@ -366,8 +423,8 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                       className="w-36"
                       value={period.endDate}
                       onChange={(e) => updateSchedulePeriod(period.id, 'endDate', e.target.value)}
-                      min="2026-01-01"
-                      max="2026-12-31"
+                      min={yearBounds.startString}
+                      max={yearBounds.endString}
                     />
                     <span className="text-muted-foreground text-sm ml-auto">
                       ({SCHEDULE_HOURS[period.scheduleType]}h/dia)
@@ -394,8 +451,8 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                 type="date"
                 value={newHoliday}
                 onChange={(e) => setNewHoliday(e.target.value)}
-                min="2026-01-01"
-                max="2026-12-31"
+                min={yearBounds.startString}
+                max={yearBounds.endString}
               />
               <Button onClick={addHoliday} size="icon">
                 <Plus className="w-4 h-4" />

@@ -13,6 +13,9 @@ export function getUserConfig(): UserConfig {
       if (!parsed.schedulePeriods) {
         parsed.schedulePeriods = DEFAULT_USER_CONFIG.schedulePeriods;
       }
+      if (typeof parsed.calendarYear !== 'number') {
+        parsed.calendarYear = DEFAULT_USER_CONFIG.calendarYear;
+      }
       // Migrate old weeklyConfig with theoreticalHours
       if (parsed.weeklyConfig && 'theoreticalHours' in (parsed.weeklyConfig.monday || {})) {
         parsed.weeklyConfig = {
