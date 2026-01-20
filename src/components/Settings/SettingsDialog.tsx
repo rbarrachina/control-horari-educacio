@@ -249,15 +249,6 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                   placeholder="El teu nom"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Cognoms</Label>
-                <Input
-                  id="lastName"
-                  value={localConfig.lastName}
-                  onChange={(e) => setLocalConfig(prev => ({ ...prev, lastName: e.target.value }))}
-                  placeholder="Els teus cognoms"
-                />
-              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
