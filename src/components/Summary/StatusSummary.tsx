@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Plane, Clock, Sparkles } from 'lucide-react';
+import { MAX_FLEXIBILITY_HOURS } from '@/lib/constants';
 import type { DayData, UserConfig } from '@/types';
 
 interface StatusSummaryProps {
@@ -51,7 +52,22 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
   const apProgress = config.totalAPHours > 0
     ? (requestedAPHours / config.totalAPHours) * 100
     : 0;
-  const flexProgress = (config.flexibilityHours / 25) * 100;
+  const requestedFlexHours = Object.values(daysData).reduce((total, day) => {
+    if (day.dayStatus !== 'flexibilitat') {
+      return total;
+    }
+    return total + (day.flexHours || 0);
+  }, 0);
+  const pendingFlexHours = Object.values(daysData).reduce((total, day) => {
+    if (day.dayStatus !== 'flexibilitat' || day.requestStatus !== 'pendent') {
+      return total;
+    }
+    return total + (day.flexHours || 0);
+  }, 0);
+  const remainingFlexHours = Math.max(0, config.flexibilityHours - requestedFlexHours);
+  const flexProgress = MAX_FLEXIBILITY_HOURS > 0
+    ? (requestedFlexHours / MAX_FLEXIBILITY_HOURS) * 100
+    : 0;
   const approvedAPHours = Math.max(0, requestedAPHours - pendingAPHours);
   const vacationValue = pendingVacationDays > 0
     ? `${remainingVacationDays} dies (${pendingVacationDays} dies per aprovar)`
@@ -59,6 +75,10 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
   const apValue = pendingAPHours > 0
     ? `${formatDuration(remainingAPHours)} (${formatDuration(pendingAPHours)} per aprovar)`
     : formatDuration(remainingAPHours);
+  const approvedFlexHours = Math.max(0, requestedFlexHours - pendingFlexHours);
+  const flexValue = pendingFlexHours > 0
+    ? `${formatDuration(remainingFlexHours)} (${formatDuration(pendingFlexHours)} per aprovar)`
+    : formatDuration(remainingFlexHours);
   const summaryItems = [
     {
       key: 'vacances',
@@ -87,9 +107,10 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
       label: 'Flexibilitat Horària',
       icon: Sparkles,
       iconClassName: 'text-[hsl(var(--status-complete))]',
-      value: formatDuration(config.flexibilityHours),
+      value: flexValue,
       unit: '',
-      detail: 'FX solicitades amb validació',
+      detail: `${formatDuration(approvedFlexHours)} aprovades de ${formatDuration(config.flexibilityHours)}`
+        + (pendingFlexHours > 0 ? ` · ${formatDuration(pendingFlexHours)} per aprovar` : ''),
       progress: flexProgress,
     },
   ];
