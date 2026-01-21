@@ -54,7 +54,7 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
   const flexProgress = (config.flexibilityHours / 25) * 100;
   const approvedAPHours = Math.max(0, requestedAPHours - pendingAPHours);
   const vacationValue = pendingVacationDays > 0
-    ? `${remainingVacationDays} (${pendingVacationDays} per aprovar) dies`
+    ? `${remainingVacationDays} dies (${pendingVacationDays} dies per aprovar)`
     : `${remainingVacationDays} dies`;
   const apValue = pendingAPHours > 0
     ? `${formatDuration(remainingAPHours)} (${formatDuration(pendingAPHours)} per aprovar)`
