@@ -1,14 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { StatusSummary } from '@/components/Summary/StatusSummary';
 import { Settings, Clock } from 'lucide-react';
-import type { UserConfig } from '@/types';
+import type { DayData, UserConfig } from '@/types';
 
 interface HeaderProps {
   config: UserConfig;
+  daysData: Record<string, DayData>;
   onOpenSettings: () => void;
 }
 
-export function Header({ config, onOpenSettings }: HeaderProps) {
+export function Header({ config, daysData, onOpenSettings }: HeaderProps) {
   const userName = config.firstName 
     ? config.firstName
     : 'Usuari';
@@ -29,7 +30,7 @@ export function Header({ config, onOpenSettings }: HeaderProps) {
                 </p>
               </div>
             </div>
-            <StatusSummary config={config} variant="compact" />
+            <StatusSummary config={config} daysData={daysData} variant="compact" />
           </div>
 
           <Button
