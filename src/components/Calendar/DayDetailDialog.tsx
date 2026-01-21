@@ -391,6 +391,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                     type="number"
                     min="0"
                     max={absenceType === 'flexibilitat' ? Math.floor(maxFlexHours) : Math.floor(theoreticalHours)}
+                    step="1"
                     value={absenceHours}
                     onChange={(e) => {
                       setAbsenceHours(parseInt(e.target.value) || 0);
@@ -407,7 +408,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                     type="number"
                     min="0"
                     max="59"
-                    step="5"
+                    step="1"
                     value={absenceMinutes}
                     onChange={(e) => {
                       setAbsenceMinutes(parseInt(e.target.value) || 0);
