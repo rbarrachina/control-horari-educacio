@@ -10,7 +10,8 @@ import {
   calculateDayWorkedHours, 
   isHoliday, 
   isWeekend,
-  formatHoursDisplay 
+  formatHoursDisplay,
+  formatHoursMinutes
 } from '@/lib/timeCalculations';
 import { DAY_NAMES_CA, MONTH_NAMES_CA } from '@/lib/constants';
 import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check } from 'lucide-react';
@@ -106,8 +107,6 @@ export function WeeklySummaryDialog({
       : 'bg-[hsl(var(--status-deficit)/0.15)] border-[hsl(var(--status-deficit)/0.4)]';
   };
 
-  const formatHours = (hours: number) => `${hours.toFixed(1)}h`;
-
   const getScheduleDisplay = (dayData: DayData | undefined) => {
     if (!dayData) return [];
     const shifts: string[] = [];
@@ -171,7 +170,7 @@ export function WeeklySummaryDialog({
                       {getDayName(day)}, {format(day, 'd')}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline">{formatHours(summaryTheoretical)}</Badge>
+                      <Badge variant="outline">{formatHoursMinutes(summaryTheoretical)}</Badge>
                       <Badge variant={dayType === 'presencial' ? 'default' : 'secondary'} className="text-xs">
                         <DayIcon className="w-3 h-3 mr-1" />
                         {dayType === 'presencial' ? 'Presencial' : 'Teletreball'}
@@ -211,10 +210,10 @@ export function WeeklySummaryDialog({
                     </div>
                     <div className="space-y-1">
                       <p className="text-muted-foreground">Hores treballades</p>
-                      <p className="font-medium">{formatHours(summaryWorked)}</p>
+                      <p className="font-medium">{formatHoursMinutes(summaryWorked)}</p>
                       {extraHours > 0 && (
                         <p className="text-xs text-muted-foreground">
-                          +{extraHours.toFixed(1)}h {dayData?.dayStatus === 'assumpte_propi' ? 'AP' : 'FX'}
+                          +{formatHoursMinutes(extraHours)} {dayData?.dayStatus === 'assumpte_propi' ? 'AP' : 'FX'}
                         </p>
                       )}
                     </div>
@@ -236,11 +235,11 @@ export function WeeklySummaryDialog({
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <p className="text-sm text-muted-foreground">Hores teòriques</p>
-                <p className="text-2xl font-bold">{totalTheoretical.toFixed(1)}h</p>
+                <p className="text-2xl font-bold">{formatHoursMinutes(totalTheoretical)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Hores treballades</p>
-                <p className="text-2xl font-bold">{totalWorked.toFixed(1)}h</p>
+                <p className="text-2xl font-bold">{formatHoursMinutes(totalWorked)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Diferència</p>
