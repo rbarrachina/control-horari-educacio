@@ -107,8 +107,6 @@ export function WeeklySummaryDialog({
       : 'bg-[hsl(var(--status-deficit)/0.15)] border-[hsl(var(--status-deficit)/0.4)]';
   };
 
-  const formatHours = (hours: number) => `${hours.toFixed(1)}h`;
-
   const getScheduleDisplay = (dayData: DayData | undefined) => {
     if (!dayData) return [];
     const shifts: string[] = [];
@@ -172,7 +170,7 @@ export function WeeklySummaryDialog({
                       {getDayName(day)}, {format(day, 'd')}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline">{formatHours(summaryTheoretical)}</Badge>
+                      <Badge variant="outline">{formatHoursMinutes(summaryTheoretical)}</Badge>
                       <Badge variant={dayType === 'presencial' ? 'default' : 'secondary'} className="text-xs">
                         <DayIcon className="w-3 h-3 mr-1" />
                         {dayType === 'presencial' ? 'Presencial' : 'Teletreball'}
@@ -237,7 +235,7 @@ export function WeeklySummaryDialog({
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <p className="text-sm text-muted-foreground">Hores teòriques</p>
-                <p className="text-2xl font-bold">{totalTheoretical.toFixed(1)}h</p>
+                <p className="text-2xl font-bold">{formatHoursMinutes(totalTheoretical)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Hores treballades</p>
