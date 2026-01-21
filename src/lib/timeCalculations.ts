@@ -138,3 +138,10 @@ export function formatHoursDisplay(hours: number): string {
   const sign = hours < 0 ? '-' : '+';
   return `${sign}${h}h ${m}min`;
 }
+
+export function formatHoursMinutes(hours: number): string {
+  const totalMinutes = Math.round(Math.abs(hours) * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${h}h ${m}min`;
+}

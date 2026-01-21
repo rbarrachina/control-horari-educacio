@@ -10,7 +10,8 @@ import {
   calculateDayWorkedHours, 
   isHoliday, 
   isWeekend,
-  formatHoursDisplay 
+  formatHoursDisplay,
+  formatHoursMinutes
 } from '@/lib/timeCalculations';
 import { DAY_NAMES_CA, MONTH_NAMES_CA } from '@/lib/constants';
 import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check } from 'lucide-react';
@@ -211,7 +212,7 @@ export function WeeklySummaryDialog({
                     </div>
                     <div className="space-y-1">
                       <p className="text-muted-foreground">Hores treballades</p>
-                      <p className="font-medium">{formatHours(summaryWorked)}</p>
+                      <p className="font-medium">{formatHoursMinutes(summaryWorked)}</p>
                       {extraHours > 0 && (
                         <p className="text-xs text-muted-foreground">
                           +{extraHours.toFixed(1)}h {dayData?.dayStatus === 'assumpte_propi' ? 'AP' : 'FX'}
@@ -240,7 +241,7 @@ export function WeeklySummaryDialog({
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Hores treballades</p>
-                <p className="text-2xl font-bold">{totalWorked.toFixed(1)}h</p>
+                <p className="text-2xl font-bold">{formatHoursMinutes(totalWorked)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Diferència</p>
