@@ -213,7 +213,7 @@ export function WeeklySummaryDialog({
                       <p className="font-medium">{formatHoursMinutes(summaryWorked)}</p>
                       {extraHours > 0 && (
                         <p className="text-xs text-muted-foreground">
-                          +{extraHours.toFixed(1)}h {dayData?.dayStatus === 'assumpte_propi' ? 'AP' : 'FX'}
+                          +{formatHoursMinutes(extraHours)} {dayData?.dayStatus === 'assumpte_propi' ? 'AP' : 'FX'}
                         </p>
                       )}
                     </div>
