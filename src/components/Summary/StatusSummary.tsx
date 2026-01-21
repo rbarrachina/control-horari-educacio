@@ -54,8 +54,8 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
   const flexProgress = (config.flexibilityHours / 25) * 100;
   const approvedAPHours = Math.max(0, requestedAPHours - pendingAPHours);
   const vacationValue = pendingVacationDays > 0
-    ? `${remainingVacationDays} (${pendingVacationDays} per aprovar)`
-    : `${remainingVacationDays}`;
+    ? `${remainingVacationDays} (${pendingVacationDays} per aprovar) dies`
+    : `${remainingVacationDays} dies`;
   const apValue = pendingAPHours > 0
     ? `${formatDuration(remainingAPHours)} (${formatDuration(pendingAPHours)} per aprovar)`
     : formatDuration(remainingAPHours);
@@ -66,7 +66,7 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
       icon: Plane,
       iconClassName: 'text-[hsl(var(--status-vacation))]',
       value: vacationValue,
-      unit: 'dies',
+      unit: '',
       detail: `${config.usedVacationDays} aprovats de ${config.totalVacationDays} dies`
         + (pendingVacationDays > 0 ? ` · ${pendingVacationDays} per aprovar` : ''),
       progress: vacationProgress,
