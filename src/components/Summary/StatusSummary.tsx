@@ -1,14 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Plane, Clock, Sparkles } from 'lucide-react';
-import type { UserConfig } from '@/types';
+import type { DayData, UserConfig } from '@/types';
 
 interface StatusSummaryProps {
   config: UserConfig;
+  daysData: Record<string, DayData>;
   variant?: 'default' | 'compact';
 }
 
-export function StatusSummary({ config, variant = 'default' }: StatusSummaryProps) {
+export function StatusSummary({ config, daysData, variant = 'default' }: StatusSummaryProps) {
   const formatDuration = (hours: number): string => {
     const wholeHours = Math.floor(hours);
     let minutes = Math.round((hours % 1) * 60);
@@ -26,19 +27,48 @@ export function StatusSummary({ config, variant = 'default' }: StatusSummaryProp
     return `${minutes} min`;
   };
 
-  const vacationProgress = (config.usedVacationDays / config.totalVacationDays) * 100;
-  const apProgress = (config.usedAPHours / config.totalAPHours) * 100;
+  const requestedVacationDays = Object.values(daysData).filter((day) => day.dayStatus === 'vacances').length;
+  const pendingVacationDays = Object.values(daysData).filter(
+    (day) => day.dayStatus === 'vacances' && day.requestStatus === 'pendent'
+  ).length;
+  const remainingVacationDays = Math.max(0, config.totalVacationDays - requestedVacationDays);
+  const vacationProgress = config.totalVacationDays > 0
+    ? (requestedVacationDays / config.totalVacationDays) * 100
+    : 0;
+  const requestedAPHours = Object.values(daysData).reduce((total, day) => {
+    if (day.dayStatus !== 'assumpte_propi') {
+      return total;
+    }
+    return total + (day.apHours || 0);
+  }, 0);
+  const pendingAPHours = Object.values(daysData).reduce((total, day) => {
+    if (day.dayStatus !== 'assumpte_propi' || day.requestStatus !== 'pendent') {
+      return total;
+    }
+    return total + (day.apHours || 0);
+  }, 0);
+  const remainingAPHours = Math.max(0, config.totalAPHours - requestedAPHours);
+  const apProgress = config.totalAPHours > 0
+    ? (requestedAPHours / config.totalAPHours) * 100
+    : 0;
   const flexProgress = (config.flexibilityHours / 25) * 100;
-  const remainingAPHours = Math.max(0, config.totalAPHours - config.usedAPHours);
+  const approvedAPHours = Math.max(0, requestedAPHours - pendingAPHours);
+  const vacationValue = pendingVacationDays > 0
+    ? `${remainingVacationDays} dies (${pendingVacationDays} dies per aprovar)`
+    : `${remainingVacationDays} dies`;
+  const apValue = pendingAPHours > 0
+    ? `${formatDuration(remainingAPHours)} (${formatDuration(pendingAPHours)} per aprovar)`
+    : formatDuration(remainingAPHours);
   const summaryItems = [
     {
       key: 'vacances',
       label: 'Vacances',
       icon: Plane,
       iconClassName: 'text-[hsl(var(--status-vacation))]',
-      value: (config.totalVacationDays - config.usedVacationDays).toString(),
-      unit: 'dies',
-      detail: `${config.usedVacationDays} de ${config.totalVacationDays} dies utilitzats`,
+      value: vacationValue,
+      unit: '',
+      detail: `${config.usedVacationDays} aprovats de ${config.totalVacationDays} dies`
+        + (pendingVacationDays > 0 ? ` · ${pendingVacationDays} per aprovar` : ''),
       progress: vacationProgress,
     },
     {
@@ -46,9 +76,10 @@ export function StatusSummary({ config, variant = 'default' }: StatusSummaryProp
       label: 'Assumptes Propis',
       icon: Clock,
       iconClassName: 'text-primary',
-      value: formatDuration(remainingAPHours),
+      value: apValue,
       unit: '',
-      detail: `${formatDuration(config.usedAPHours)} de ${formatDuration(config.totalAPHours)} utilitzades`,
+      detail: `${formatDuration(approvedAPHours)} aprovades de ${formatDuration(config.totalAPHours)}`
+        + (pendingAPHours > 0 ? ` · ${formatDuration(pendingAPHours)} per aprovar` : ''),
       progress: apProgress,
     },
     {
