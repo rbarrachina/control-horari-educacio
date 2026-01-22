@@ -1,5 +1,5 @@
 export type DayType = 'presencial' | 'teletreball';
-export type DayStatus = 'laboral' | 'festiu' | 'vacances' | 'assumpte_propi' | 'flexibilitat';
+export type DayStatus = 'laboral' | 'festiu' | 'vacances' | 'assumpte_propi' | 'flexibilitat' | 'altres';
 export type RequestStatus = 'pendent' | 'aprovat' | null;
 export type ScheduleType = 'hivern' | 'estiu';
 
@@ -14,6 +14,8 @@ export interface DayData {
   requestStatus: RequestStatus;
   apHours?: number; // Hours used for assumptes propis
   flexHours?: number; // Hours used from flexibility
+  otherHours?: number; // Hours used for other absences
+  otherComment?: string; // Short comment for other absences
   notes?: string;
 }
 

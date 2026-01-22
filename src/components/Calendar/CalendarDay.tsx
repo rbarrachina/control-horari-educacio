@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import type { DayData, UserConfig } from '@/types';
 import { calculateDayWorkedHours, isWeekend, isHoliday, getTheoreticalHoursForDate, getDayTypeForDate } from '@/lib/timeCalculations';
 import { format } from 'date-fns';
-import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check } from 'lucide-react';
+import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check, MoreHorizontal } from 'lucide-react';
 
 interface CalendarDayProps {
   date: Date;
@@ -32,12 +32,14 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
     }
     
     // AP or FX with approval status
-    if (dayData?.dayStatus === 'assumpte_propi' || dayData?.dayStatus === 'flexibilitat') {
+    if (dayData?.dayStatus === 'assumpte_propi' || dayData?.dayStatus === 'flexibilitat' || dayData?.dayStatus === 'altres') {
       const worked = calculateDayWorkedHours(dayData);
       const theoretical = getTheoreticalHoursForDate(date, config);
       const extraHours = dayData.dayStatus === 'assumpte_propi'
         ? (dayData.apHours || 0)
-        : (dayData.flexHours || 0);
+        : dayData.dayStatus === 'flexibilitat'
+          ? (dayData.flexHours || 0)
+          : (dayData.otherHours || 0);
       const totalWorked = worked + extraHours;
       if (dayData.requestStatus === 'aprovat' && totalWorked >= theoretical) {
         return 'bg-[hsl(var(--status-complete))] text-[hsl(var(--status-complete-foreground))]';
@@ -69,12 +71,13 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
     if (dayData?.dayStatus === 'vacances') return <Plane className="w-3 h-3" />;
     if (dayData?.dayStatus === 'assumpte_propi') return <Clock className="w-3 h-3" />;
     if (dayData?.dayStatus === 'flexibilitat') return <Sparkles className="w-3 h-3" />;
+    if (dayData?.dayStatus === 'altres') return <MoreHorizontal className="w-3 h-3" />;
     if (holiday) return <Calendar className="w-3 h-3" />;
     return null;
   };
 
   const getApprovalIcon = () => {
-    if ((dayData?.dayStatus === 'assumpte_propi' || dayData?.dayStatus === 'flexibilitat' || dayData?.dayStatus === 'vacances') 
+    if ((dayData?.dayStatus === 'assumpte_propi' || dayData?.dayStatus === 'flexibilitat' || dayData?.dayStatus === 'altres' || dayData?.dayStatus === 'vacances') 
         && dayData?.requestStatus === 'aprovat') {
       return <Check className="w-3 h-3" />;
     }
@@ -104,6 +107,9 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
     }
     if (dayData?.dayStatus === 'flexibilitat' && dayData.flexHours) {
       return `FX = ${formatAbsenceHours(dayData.flexHours)}`;
+    }
+    if (dayData?.dayStatus === 'altres' && dayData.otherHours) {
+      return `Altres = ${formatAbsenceHours(dayData.otherHours)}`;
     }
     return null;
   };

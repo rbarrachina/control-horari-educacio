@@ -110,6 +110,8 @@ export function calculateWeeklySummary(
         workedHours += (dayData.apHours || 0) + calculateDayWorkedHours(dayData);
       } else if (dayData.dayStatus === 'flexibilitat') {
         workedHours += (dayData.flexHours || 0) + calculateDayWorkedHours(dayData);
+      } else if (dayData.dayStatus === 'altres') {
+        workedHours += (dayData.otherHours || 0) + calculateDayWorkedHours(dayData);
       } else {
         workedHours += calculateDayWorkedHours(dayData);
       }
