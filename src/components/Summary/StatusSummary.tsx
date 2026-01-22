@@ -123,7 +123,7 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
           return (
             <div
               key={item.key}
-              className="flex items-center gap-3 rounded-lg border border-border bg-card/60 px-3 py-2 shadow-sm"
+              className="flex items-center gap-2 rounded-lg border border-border bg-card/60 px-3 py-2 shadow-sm"
             >
               <div className="flex items-center gap-2">
                 <Icon className={`w-4 h-4 ${item.iconClassName}`} />
