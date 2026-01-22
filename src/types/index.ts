@@ -5,7 +5,6 @@ export type ScheduleType = 'hivern' | 'estiu';
 
 export interface DayData {
   date: string; // YYYY-MM-DD
-  theoreticalHours: number;
   startTime: string | null; // HH:mm
   endTime: string | null; // HH:mm
   startTime2?: string | null; // HH:mm
