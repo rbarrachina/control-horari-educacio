@@ -158,6 +158,7 @@ export function WeeklySummaryDialog({
             const statusLabel = getDayStatusLabel(dayData, holiday);
             const statusCardClass = getStatusCardClass(dayData, holiday, worked, theoretical);
             const schedule = getScheduleDisplay(dayData);
+            const showStatusBadge = statusLabel !== 'Laboral';
             
             return (
               <div
@@ -175,10 +176,12 @@ export function WeeklySummaryDialog({
                         <DayIcon className="w-3 h-3 mr-1" />
                         {dayType === 'presencial' ? 'Presencial' : 'Teletreball'}
                       </Badge>
-                      <Badge variant="outline" className="text-xs flex items-center gap-1">
-                        {StatusIcon && <StatusIcon className="w-3 h-3" />}
-                        {statusLabel}
-                      </Badge>
+                      {showStatusBadge && (
+                        <Badge variant="outline" className="text-xs flex items-center gap-1">
+                          {StatusIcon && <StatusIcon className="w-3 h-3" />}
+                          {statusLabel}
+                        </Badge>
+                      )}
                       {dayData?.requestStatus === 'aprovat' && (
                         <Badge variant="outline" className="text-xs flex items-center gap-1">
                           <Check className="w-3 h-3" />
