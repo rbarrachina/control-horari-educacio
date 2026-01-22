@@ -33,7 +33,13 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isToday, on
     
     // AP or FX with approval status
     if (dayData?.dayStatus === 'assumpte_propi' || dayData?.dayStatus === 'flexibilitat') {
-      if (dayData.requestStatus === 'aprovat') {
+      const worked = calculateDayWorkedHours(dayData);
+      const theoretical = getTheoreticalHoursForDate(date, config);
+      const extraHours = dayData.dayStatus === 'assumpte_propi'
+        ? (dayData.apHours || 0)
+        : (dayData.flexHours || 0);
+      const totalWorked = worked + extraHours;
+      if (dayData.requestStatus === 'aprovat' && totalWorked >= theoretical) {
         return 'bg-[hsl(var(--status-complete))] text-[hsl(var(--status-complete-foreground))]';
       }
       return 'bg-[hsl(var(--status-deficit))] text-[hsl(var(--status-deficit-foreground))]';
