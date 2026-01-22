@@ -10,7 +10,7 @@ const DayTypeSchema = z.enum(['presencial', 'teletreball']);
 const DayStatusSchema = z.enum(['laboral', 'festiu', 'vacances', 'assumpte_propi', 'flexibilitat']);
 
 // Schema for RequestStatus
-const RequestStatusSchema = z.enum(['pendent', 'aprovat']).nullable();
+const RequestStatusSchema = z.enum(['pendent', 'aprovat']).nullable().optional();
 
 // Schema for ScheduleType
 const ScheduleTypeSchema = z.enum(['hivern', 'estiu']);
