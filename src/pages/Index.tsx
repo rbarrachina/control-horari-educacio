@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Header } from '@/components/Header';
 import { CalendarGrid } from '@/components/Calendar/CalendarGrid';
-import { Legend } from '@/components/Legend';
 import { SettingsDialog } from '@/components/Settings/SettingsDialog';
 import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,7 +35,6 @@ const Index = () => {
           onDayUpdate={updateDayData}
         />
         
-        <Legend />
       </main>
 
       <SettingsDialog

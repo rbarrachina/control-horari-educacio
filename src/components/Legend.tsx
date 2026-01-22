@@ -1,17 +1,14 @@
 import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check, Info } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 
 export function Legend() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:bg-accent"
-        >
+        <Button type="button" variant="outline" size="icon" aria-label="Llegenda">
           <Info className="h-4 w-4" />
-          Llegenda
-        </button>
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-4">
         <h3 className="text-sm font-semibold mb-3 text-foreground">Llegenda</h3>

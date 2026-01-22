@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Legend } from '@/components/Legend';
 import { StatusSummary } from '@/components/Summary/StatusSummary';
 import { Settings, Clock } from 'lucide-react';
 import type { DayData, UserConfig } from '@/types';
@@ -33,14 +34,17 @@ export function Header({ config, daysData, onOpenSettings }: HeaderProps) {
             <StatusSummary config={config} daysData={daysData} variant="compact" />
           </div>
 
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onOpenSettings}
-            aria-label="Configuració"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onOpenSettings}
+              aria-label="Configuració"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+            <Legend />
+          </div>
         </div>
       </div>
     </header>
