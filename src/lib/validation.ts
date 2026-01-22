@@ -19,8 +19,8 @@ const ScheduleTypeSchema = z.enum(['hivern', 'estiu']);
 const DayDataSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
   theoreticalHours: z.number().min(0).max(24).optional(),
-  startTime: z.string().regex(/^\d{2}:\d{2}$/).nullable(),
-  endTime: z.string().regex(/^\d{2}:\d{2}$/).nullable(),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
   startTime2: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
   endTime2: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
   dayType: DayTypeSchema,

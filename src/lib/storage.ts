@@ -76,9 +76,16 @@ export function saveDayData(dayData: DayData): void {
   saveDaysData(allDays);
 }
 
+type ExportDayData = Omit<DayData, 'startTime' | 'endTime' | 'startTime2' | 'endTime2'> & {
+  startTime?: string | null;
+  endTime?: string | null;
+  startTime2?: string | null;
+  endTime2?: string | null;
+};
+
 export interface ExportData {
   config: UserConfig;
-  daysData: Record<string, DayData>;
+  daysData: Record<string, ExportDayData>;
   exportDate: string;
   version: string;
 }
@@ -88,7 +95,14 @@ export function exportAllData(): ExportData {
   const sanitizedDaysData = Object.fromEntries(
     Object.entries(daysData).map(([date, dayData]) => {
       const { theoreticalHours: _unused, ...rest } = dayData as DayData & { theoreticalHours?: number };
-      return [date, rest];
+      const cleaned: ExportDayData = { ...rest };
+
+      if (cleaned.startTime === null) delete cleaned.startTime;
+      if (cleaned.endTime === null) delete cleaned.endTime;
+      if (cleaned.startTime2 == null) delete cleaned.startTime2;
+      if (cleaned.endTime2 == null) delete cleaned.endTime2;
+
+      return [date, cleaned];
     })
   );
 
@@ -107,7 +121,14 @@ export function importAllData(data: ExportData): boolean {
       const sanitizedDaysData = Object.fromEntries(
         Object.entries(data.daysData).map(([date, dayData]) => {
           const { theoreticalHours: _unused, ...rest } = dayData as DayData & { theoreticalHours?: number };
-          return [date, rest];
+          const normalized: DayData = {
+            ...rest,
+            startTime: rest.startTime ?? null,
+            endTime: rest.endTime ?? null,
+            startTime2: rest.startTime2 ?? null,
+            endTime2: rest.endTime2 ?? null,
+          };
+          return [date, normalized];
         })
       ) as Record<string, DayData>;
       saveDaysData(sanitizedDaysData);
