@@ -78,12 +78,13 @@ export function saveDayData(dayData: DayData): void {
   saveDaysData(allDays);
 }
 
-type ExportDayData = Omit<DayData, 'startTime' | 'endTime' | 'startTime2' | 'endTime2' | 'dayType'> & {
+type ExportDayData = Omit<DayData, 'startTime' | 'endTime' | 'startTime2' | 'endTime2' | 'dayType' | 'requestStatus'> & {
   startTime?: string | null;
   endTime?: string | null;
   startTime2?: string | null;
   endTime2?: string | null;
   dayType?: DayType;
+  requestStatus?: DayData['requestStatus'];
 };
 
 export interface ExportData {
@@ -97,7 +98,7 @@ export function exportAllData(): ExportData {
   const daysData = getDaysData();
   const sanitizedDaysData = Object.fromEntries(
     Object.entries(daysData).map(([date, dayData]) => {
-      const { theoreticalHours: _unused, dayType: _dayType, ...rest } = dayData as DayData & {
+      const { theoreticalHours: _unused, dayType: _dayType, requestStatus, ...rest } = dayData as DayData & {
         theoreticalHours?: number;
       };
       const cleaned: ExportDayData = { ...rest };
@@ -106,6 +107,9 @@ export function exportAllData(): ExportData {
       if (cleaned.endTime === null) delete cleaned.endTime;
       if (cleaned.startTime2 == null) delete cleaned.startTime2;
       if (cleaned.endTime2 == null) delete cleaned.endTime2;
+      if (requestStatus != null) {
+        cleaned.requestStatus = requestStatus;
+      }
 
       return [date, cleaned];
     })
@@ -132,6 +136,7 @@ export function importAllData(data: ExportData): boolean {
             endTime: rest.endTime ?? null,
             startTime2: rest.startTime2 ?? null,
             endTime2: rest.endTime2 ?? null,
+            requestStatus: rest.requestStatus ?? null,
             dayType: rest.dayType ?? getDayTypeForDate(parseISO(date), data.config),
           };
           return [date, normalized];
