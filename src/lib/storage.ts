@@ -84,9 +84,17 @@ export interface ExportData {
 }
 
 export function exportAllData(): ExportData {
+  const daysData = getDaysData();
+  const sanitizedDaysData = Object.fromEntries(
+    Object.entries(daysData).map(([date, dayData]) => {
+      const { theoreticalHours: _unused, ...rest } = dayData as DayData & { theoreticalHours?: number };
+      return [date, rest];
+    })
+  );
+
   return {
     config: getUserConfig(),
-    daysData: getDaysData(),
+    daysData: sanitizedDaysData,
     exportDate: new Date().toISOString(),
     version: '1.0',
   };
@@ -96,7 +104,13 @@ export function importAllData(data: ExportData): boolean {
   try {
     if (data.config && data.daysData) {
       saveUserConfig(data.config);
-      saveDaysData(data.daysData);
+      const sanitizedDaysData = Object.fromEntries(
+        Object.entries(data.daysData).map(([date, dayData]) => {
+          const { theoreticalHours: _unused, ...rest } = dayData as DayData & { theoreticalHours?: number };
+          return [date, rest];
+        })
+      ) as Record<string, DayData>;
+      saveDaysData(sanitizedDaysData);
       return true;
     }
     return false;

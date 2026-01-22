@@ -175,7 +175,6 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
       : undefined;
     const newDayData: DayData = {
       date: format(date, 'yyyy-MM-dd'),
-      theoreticalHours,
       startTime: absenceType === 'vacances' ? null : (startTime || null),
       endTime: absenceType === 'vacances' ? null : (endTime || null),
       startTime2: absenceType === 'vacances' ? null : (startTime2 || null),
