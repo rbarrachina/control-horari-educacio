@@ -40,6 +40,8 @@ export function WeeklySummaryIcon({ weekStart, weekEnd, daysData, config, onClic
         totalWorked += (dayData.apHours || 0) + calculateDayWorkedHours(dayData);
       } else if (dayData?.dayStatus === 'flexibilitat') {
         totalWorked += (dayData.flexHours || 0) + calculateDayWorkedHours(dayData);
+      } else if (dayData?.dayStatus === 'altres') {
+        totalWorked += (dayData.otherHours || 0) + calculateDayWorkedHours(dayData);
       } else {
         totalWorked += calculateDayWorkedHours(dayData);
       }

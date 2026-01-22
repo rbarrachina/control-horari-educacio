@@ -14,7 +14,7 @@ import {
   formatHoursMinutes
 } from '@/lib/timeCalculations';
 import { DAY_NAMES_CA, MONTH_NAMES_CA } from '@/lib/constants';
-import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check } from 'lucide-react';
+import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check, MoreHorizontal } from 'lucide-react';
 
 interface WeeklySummaryDialogProps {
   weekStart: Date | null;
@@ -62,6 +62,8 @@ export function WeeklySummaryDialog({
       totalWorked += (dayData.apHours || 0) + calculateDayWorkedHours(dayData);
     } else if (dayData?.dayStatus === 'flexibilitat') {
       totalWorked += (dayData.flexHours || 0) + calculateDayWorkedHours(dayData);
+    } else if (dayData?.dayStatus === 'altres') {
+      totalWorked += (dayData.otherHours || 0) + calculateDayWorkedHours(dayData);
     } else {
       totalWorked += calculateDayWorkedHours(dayData);
     }
@@ -75,6 +77,7 @@ export function WeeklySummaryDialog({
     if (dayData.dayStatus === 'vacances') return 'Vacances';
     if (dayData.dayStatus === 'assumpte_propi') return 'AP';
     if (dayData.dayStatus === 'flexibilitat') return 'FX';
+    if (dayData.dayStatus === 'altres') return 'Altres';
     return 'Laboral';
   };
 
@@ -83,6 +86,7 @@ export function WeeklySummaryDialog({
     if (dayData?.dayStatus === 'vacances') return Plane;
     if (dayData?.dayStatus === 'assumpte_propi') return Clock;
     if (dayData?.dayStatus === 'flexibilitat') return Sparkles;
+    if (dayData?.dayStatus === 'altres') return MoreHorizontal;
     return null;
   };
 
@@ -91,7 +95,7 @@ export function WeeklySummaryDialog({
     if (dayData?.dayStatus === 'vacances') {
       return 'bg-[hsl(var(--status-vacation)/0.15)] border-[hsl(var(--status-vacation)/0.4)]';
     }
-    if (dayData?.dayStatus === 'assumpte_propi' || dayData?.dayStatus === 'flexibilitat') {
+    if (dayData?.dayStatus === 'assumpte_propi' || dayData?.dayStatus === 'flexibilitat' || dayData?.dayStatus === 'altres') {
       return dayData?.requestStatus === 'aprovat'
         ? 'bg-[hsl(var(--status-complete)/0.15)] border-[hsl(var(--status-complete)/0.4)]'
         : 'bg-[hsl(var(--status-deficit)/0.15)] border-[hsl(var(--status-deficit)/0.4)]';
@@ -147,7 +151,9 @@ export function WeeklySummaryDialog({
               ? (dayData.apHours || 0)
               : dayData?.dayStatus === 'flexibilitat'
                 ? (dayData.flexHours || 0)
-                : 0;
+                : dayData?.dayStatus === 'altres'
+                  ? (dayData.otherHours || 0)
+                  : 0;
             const worked = baseWorked + extraHours;
             const excludedFromTotals = holiday || dayData?.dayStatus === 'vacances';
             const summaryTheoretical = excludedFromTotals ? 0 : theoretical;
@@ -216,7 +222,7 @@ export function WeeklySummaryDialog({
                       <p className="font-medium">{formatHoursMinutes(summaryWorked)}</p>
                       {extraHours > 0 && (
                         <p className="text-xs text-muted-foreground">
-                          +{formatHoursMinutes(extraHours)} {dayData?.dayStatus === 'assumpte_propi' ? 'AP' : 'FX'}
+                          +{formatHoursMinutes(extraHours)} {dayData?.dayStatus === 'assumpte_propi' ? 'AP' : dayData?.dayStatus === 'flexibilitat' ? 'FX' : 'Altres'}
                         </p>
                       )}
                     </div>

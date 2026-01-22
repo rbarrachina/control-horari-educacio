@@ -7,7 +7,7 @@ export const MAX_IMPORT_FILE_SIZE = 5 * 1024 * 1024;
 const DayTypeSchema = z.enum(['presencial', 'teletreball']);
 
 // Schema for DayStatus
-const DayStatusSchema = z.enum(['laboral', 'festiu', 'vacances', 'assumpte_propi', 'flexibilitat']);
+const DayStatusSchema = z.enum(['laboral', 'festiu', 'vacances', 'assumpte_propi', 'flexibilitat', 'altres']);
 
 // Schema for RequestStatus
 const RequestStatusSchema = z.enum(['pendent', 'aprovat']).nullable();
@@ -28,6 +28,8 @@ const DayDataSchema = z.object({
   requestStatus: RequestStatusSchema,
   apHours: z.number().min(0).max(24).optional(),
   flexHours: z.number().min(0).max(24).optional(),
+  otherHours: z.number().min(0).max(24).optional(),
+  otherComment: z.string().max(50).optional(),
   notes: z.string().max(1000).optional(),
 });
 

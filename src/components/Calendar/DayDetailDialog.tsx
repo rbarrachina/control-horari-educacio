@@ -21,7 +21,7 @@ interface DayDetailDialogProps {
   onSave: (dayData: DayData) => void;
 }
 
-type AbsenceType = 'cap' | 'vacances' | 'assumpte_propi' | 'flexibilitat';
+type AbsenceType = 'cap' | 'vacances' | 'assumpte_propi' | 'flexibilitat' | 'altres';
 
 export function DayDetailDialog({ date, dayData, config, requestedVacationDays, onClose, onSave }: DayDetailDialogProps) {
   const [startTime, setStartTime] = useState(config.defaultStartTime);
@@ -34,6 +34,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
   const [isApproved, setIsApproved] = useState(false);
   const [absenceHours, setAbsenceHours] = useState(0);
   const [absenceMinutes, setAbsenceMinutes] = useState(0);
+  const [otherComment, setOtherComment] = useState('');
   const [vacationError, setVacationError] = useState('');
   const [apError, setApError] = useState('');
 
@@ -69,18 +70,28 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
       // Determine absence type from dayStatus
       if (dayData.dayStatus === 'vacances') {
         setAbsenceType('vacances');
+        setOtherComment('');
       } else if (dayData.dayStatus === 'assumpte_propi') {
         setAbsenceType('assumpte_propi');
         const hours = dayData.apHours || 0;
         setAbsenceHours(Math.floor(hours));
         setAbsenceMinutes(Math.round((hours % 1) * 60));
+        setOtherComment('');
       } else if (dayData.dayStatus === 'flexibilitat') {
         setAbsenceType('flexibilitat');
         const hours = dayData.flexHours || 0;
         setAbsenceHours(Math.floor(hours));
         setAbsenceMinutes(Math.round((hours % 1) * 60));
+        setOtherComment('');
+      } else if (dayData.dayStatus === 'altres') {
+        setAbsenceType('altres');
+        const hours = dayData.otherHours || 0;
+        setAbsenceHours(Math.floor(hours));
+        setAbsenceMinutes(Math.round((hours % 1) * 60));
+        setOtherComment(dayData.otherComment || '');
       } else {
         setAbsenceType('cap');
+        setOtherComment('');
       }
       
       setIsApproved(dayData.requestStatus === 'aprovat');
@@ -95,6 +106,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
       setIsApproved(false);
       setAbsenceHours(0);
       setAbsenceMinutes(0);
+      setOtherComment('');
     }
     setVacationError('');
     setApError('');
@@ -118,7 +130,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
   // Total worked hours = actual worked + AP/FX hours (if applicable)
   const totalWorkedHours = absenceType === 'vacances' 
     ? theoreticalHours  // Vacances counts as full day
-    : (absenceType === 'assumpte_propi' || absenceType === 'flexibilitat')
+    : (absenceType === 'assumpte_propi' || absenceType === 'flexibilitat' || absenceType === 'altres')
       ? actualWorkedHours + absenceHoursDecimal
       : actualWorkedHours;
   
@@ -142,6 +154,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
     if (absenceType === 'vacances') return 'vacances';
     if (absenceType === 'assumpte_propi') return 'assumpte_propi';
     if (absenceType === 'flexibilitat') return 'flexibilitat';
+    if (absenceType === 'altres') return 'altres';
     return 'laboral';
   };
 
@@ -173,6 +186,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
     const cappedFlexHours = absenceType === 'flexibilitat'
       ? Math.min(getAbsenceHoursDecimal(), maxFlexHours)
       : undefined;
+    const trimmedOtherComment = otherComment.trim().slice(0, 50);
     const newDayData: DayData = {
       date: format(date, 'yyyy-MM-dd'),
       startTime: absenceType === 'vacances' ? null : (startTime || null),
@@ -184,6 +198,8 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
       requestStatus: getRequestStatus(),
       apHours: absenceType === 'assumpte_propi' ? getAbsenceHoursDecimal() : undefined,
       flexHours: absenceType === 'flexibilitat' ? cappedFlexHours : undefined,
+      otherHours: absenceType === 'altres' ? getAbsenceHoursDecimal() : undefined,
+      otherComment: absenceType === 'altres' && trimmedOtherComment ? trimmedOtherComment : undefined,
     };
     onSave(newDayData);
     onClose();
@@ -360,6 +376,9 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                 setAbsenceHours(0);
                 setAbsenceMinutes(0);
               }
+              if (v !== 'altres') {
+                setOtherComment('');
+              }
             }}>
               <SelectTrigger>
                 <SelectValue />
@@ -369,6 +388,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                 <SelectItem value="vacances">Vacances</SelectItem>
                 <SelectItem value="assumpte_propi">Assumpte propi (AP)</SelectItem>
                 <SelectItem value="flexibilitat">Flexibilitat horària (FX)</SelectItem>
+                <SelectItem value="altres">Altres</SelectItem>
               </SelectContent>
             </Select>
             {vacationError && (
@@ -379,8 +399,8 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
             )}
           </div>
 
-          {/* Hours/minutes input for AP or FX */}
-          {(absenceType === 'assumpte_propi' || absenceType === 'flexibilitat') && (
+          {/* Hours/minutes input for AP, FX, or altres */}
+          {(absenceType === 'assumpte_propi' || absenceType === 'flexibilitat' || absenceType === 'altres') && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -418,7 +438,23 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                   />
                 </div>
               </div>
-              
+
+              {absenceType === 'altres' && (
+                <div className="space-y-2">
+                  <Label htmlFor="otherComment">Comentari (màx. 50 caràcters)</Label>
+                  <Input
+                    id="otherComment"
+                    type="text"
+                    maxLength={50}
+                    value={otherComment}
+                    onChange={(e) => setOtherComment(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {otherComment.length}/50
+                  </p>
+                </div>
+              )}
+
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="approved"
