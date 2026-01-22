@@ -1,5 +1,7 @@
-import type { UserConfig, DayData } from '@/types';
+import type { UserConfig, DayData, DayType } from '@/types';
 import { DEFAULT_USER_CONFIG } from './constants';
+import { getDayTypeForDate } from './timeCalculations';
+import { parseISO } from 'date-fns';
 
 const USER_CONFIG_KEY = 'control-horari-config';
 const DAYS_DATA_KEY = 'control-horari-days';
@@ -76,11 +78,12 @@ export function saveDayData(dayData: DayData): void {
   saveDaysData(allDays);
 }
 
-type ExportDayData = Omit<DayData, 'startTime' | 'endTime' | 'startTime2' | 'endTime2'> & {
+type ExportDayData = Omit<DayData, 'startTime' | 'endTime' | 'startTime2' | 'endTime2' | 'dayType'> & {
   startTime?: string | null;
   endTime?: string | null;
   startTime2?: string | null;
   endTime2?: string | null;
+  dayType?: DayType;
 };
 
 export interface ExportData {
@@ -94,7 +97,9 @@ export function exportAllData(): ExportData {
   const daysData = getDaysData();
   const sanitizedDaysData = Object.fromEntries(
     Object.entries(daysData).map(([date, dayData]) => {
-      const { theoreticalHours: _unused, ...rest } = dayData as DayData & { theoreticalHours?: number };
+      const { theoreticalHours: _unused, dayType: _dayType, ...rest } = dayData as DayData & {
+        theoreticalHours?: number;
+      };
       const cleaned: ExportDayData = { ...rest };
 
       if (cleaned.startTime === null) delete cleaned.startTime;
@@ -127,6 +132,7 @@ export function importAllData(data: ExportData): boolean {
             endTime: rest.endTime ?? null,
             startTime2: rest.startTime2 ?? null,
             endTime2: rest.endTime2 ?? null,
+            dayType: rest.dayType ?? getDayTypeForDate(parseISO(date), data.config),
           };
           return [date, normalized];
         })
