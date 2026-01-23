@@ -1,4 +1,4 @@
-import type { UserConfig, DayData, DayType } from '@/types';
+import type { UserConfig, DayData, DayType, DayStatus } from '@/types';
 import { DEFAULT_USER_CONFIG } from './constants';
 import { getDayTypeForDate } from './timeCalculations';
 import { parseISO } from 'date-fns';
@@ -47,11 +47,59 @@ export function saveUserConfig(config: UserConfig): void {
   }
 }
 
-export function getDaysData(): Record<string, DayData> {
+function inferDayStatus(dayData: Partial<DayData>): DayStatus {
+  if (dayData.dayStatus) return dayData.dayStatus;
+  if (dayData.apHours != null) return 'assumpte_propi';
+  if (dayData.flexHours != null) return 'flexibilitat';
+  if (dayData.otherHours != null || dayData.otherComment != null) return 'altres';
+  if (dayData.requestStatus != null) return 'vacances';
+  return 'laboral';
+}
+
+function normalizeDayData(date: string, raw: Partial<DayData>, config: UserConfig): DayData {
+  return {
+    date,
+    startTime: raw.startTime ?? null,
+    endTime: raw.endTime ?? null,
+    startTime2: raw.startTime2 ?? null,
+    endTime2: raw.endTime2 ?? null,
+    dayType: getDayTypeForDate(parseISO(date), config),
+    dayStatus: inferDayStatus(raw),
+    requestStatus: raw.requestStatus ?? null,
+    apHours: raw.apHours,
+    flexHours: raw.flexHours,
+    otherHours: raw.otherHours,
+    otherComment: raw.otherComment,
+    notes: raw.notes,
+  };
+}
+
+function sanitizeDayDataForStorage(date: string, dayData: DayData): Partial<DayData> & { date: string } {
+  const cleaned: Partial<DayData> & { date: string } = { date };
+
+  if (dayData.startTime != null) cleaned.startTime = dayData.startTime;
+  if (dayData.endTime != null) cleaned.endTime = dayData.endTime;
+  if (dayData.startTime2 != null) cleaned.startTime2 = dayData.startTime2;
+  if (dayData.endTime2 != null) cleaned.endTime2 = dayData.endTime2;
+  if (dayData.dayStatus === 'vacances') cleaned.dayStatus = dayData.dayStatus;
+  if (dayData.requestStatus != null) cleaned.requestStatus = dayData.requestStatus;
+  if (dayData.apHours != null) cleaned.apHours = dayData.apHours;
+  if (dayData.flexHours != null) cleaned.flexHours = dayData.flexHours;
+  if (dayData.otherHours != null) cleaned.otherHours = dayData.otherHours;
+  if (dayData.otherComment != null && dayData.otherComment !== '') cleaned.otherComment = dayData.otherComment;
+  if (dayData.notes != null) cleaned.notes = dayData.notes;
+
+  return cleaned;
+}
+
+export function getDaysData(config: UserConfig = getUserConfig()): Record<string, DayData> {
   try {
     const stored = localStorage.getItem(DAYS_DATA_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored) as Record<string, Partial<DayData>>;
+      return Object.fromEntries(
+        Object.entries(parsed).map(([date, dayData]) => [date, normalizeDayData(date, dayData, config)])
+      );
     }
   } catch (error) {
     console.error('Error loading days data:', error);
@@ -62,8 +110,11 @@ export function getDaysData(): Record<string, DayData> {
 export function saveDaysData(data: Record<string, DayData | null | undefined>): void {
   try {
     const sanitized = Object.fromEntries(
-      Object.entries(data).filter(([, value]) => value != null)
-    ) as Record<string, DayData>;
+      Object.entries(data)
+        .filter(([, value]) => value != null)
+        .map(([date, value]) => [date, sanitizeDayDataForStorage(date, value as DayData)])
+        .filter(([, value]) => Object.keys(value).length > 1)
+    ) as Record<string, Partial<DayData> & { date: string }>;
     localStorage.setItem(DAYS_DATA_KEY, JSON.stringify(sanitized));
   } catch (error) {
     console.error('Error saving days data:', error);
@@ -98,7 +149,8 @@ export interface ExportData {
 }
 
 export function exportAllData(): ExportData {
-  const daysData = getDaysData();
+  const config = getUserConfig();
+  const daysData = getDaysData(config);
   const sanitizedDaysData = Object.fromEntries(
     Object.entries(daysData).map(([date, dayData]) => {
       const { theoreticalHours: _unused, dayType: _dayType, requestStatus, ...rest } = dayData as DayData & {
