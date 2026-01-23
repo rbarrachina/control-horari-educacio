@@ -110,13 +110,15 @@ export function CalendarGrid({ daysData, config, onDayUpdate }: CalendarGridProp
             <div key={weekIndex} className="grid grid-cols-8 gap-2">
               {week.map((day) => {
                 const dateStr = format(day, 'yyyy-MM-dd');
+                const isInCalendarYear = day.getFullYear() === calendarYear;
                 return (
                   <CalendarDay
                     key={dateStr}
                     date={day}
-                    dayData={daysData[dateStr] || null}
+                    dayData={isInCalendarYear ? daysData[dateStr] || null : null}
                     config={config}
                     isCurrentMonth={isSameMonth(day, currentDate)}
+                    isInCalendarYear={isInCalendarYear}
                     isToday={isToday(day)}
                     onClick={() => setSelectedDate(day)}
                   />
