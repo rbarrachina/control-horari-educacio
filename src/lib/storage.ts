@@ -59,9 +59,12 @@ export function getDaysData(): Record<string, DayData> {
   return {};
 }
 
-export function saveDaysData(data: Record<string, DayData>): void {
+export function saveDaysData(data: Record<string, DayData | null | undefined>): void {
   try {
-    localStorage.setItem(DAYS_DATA_KEY, JSON.stringify(data));
+    const sanitized = Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value != null)
+    ) as Record<string, DayData>;
+    localStorage.setItem(DAYS_DATA_KEY, JSON.stringify(sanitized));
   } catch (error) {
     console.error('Error saving days data:', error);
   }
