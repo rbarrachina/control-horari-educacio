@@ -567,9 +567,6 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
           <TabsContent value="authorship" className="space-y-6 pt-4">
             <div className="space-y-1">
               <h3 className="text-lg font-semibold">Detalls del projecte</h3>
-              <p className="text-sm text-muted-foreground">
-                Informació bàsica sobre el programa i la seva autoria.
-              </p>
             </div>
             <dl className="grid gap-3 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
