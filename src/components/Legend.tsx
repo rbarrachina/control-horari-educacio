@@ -21,8 +21,8 @@ export function Legend() {
                 <span className="text-muted-foreground">Sense dades</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-[hsl(var(--status-pending))]" />
-                <span className="text-muted-foreground">Pendent</span>
+                <div className="w-4 h-4 rounded bg-[hsl(var(--status-weekend))]" />
+                <span className="text-muted-foreground">Cap de setmana</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-[hsl(var(--status-deficit))]" />
@@ -39,10 +39,6 @@ export function Legend() {
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-[hsl(var(--status-vacation))]" />
                 <span className="text-muted-foreground">Vacances</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-[hsl(var(--status-weekend))]" />
-                <span className="text-muted-foreground">Cap de setmana</span>
               </div>
             </div>
           </div>
