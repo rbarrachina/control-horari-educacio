@@ -35,7 +35,7 @@ export const DEFAULT_USER_CONFIG = {
       id: 'default-winter',
       startDate: `${DEFAULT_CALENDAR_YEAR}-01-01`,
       endDate: `${DEFAULT_CALENDAR_YEAR}-12-31`,
-      scheduleType: 'hivern' as const,
+      scheduleType: 'estiu' as const,
     },
   ],
   totalVacationDays: 25,
