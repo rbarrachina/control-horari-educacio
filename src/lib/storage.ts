@@ -5,40 +5,6 @@ import { parseISO } from 'date-fns';
 
 const USER_CONFIG_KEY = 'control-horari-config';
 const DAYS_DATA_KEY = 'control-horari-days';
-const ONBOARDING_STEP_KEY = 'control-horari-onboarding-step';
-
-export function hasStoredUserConfig(): boolean {
-  try {
-    return localStorage.getItem(USER_CONFIG_KEY) !== null;
-  } catch (error) {
-    console.error('Error checking user config:', error);
-    return false;
-  }
-}
-
-export function getOnboardingStep(): number {
-  try {
-    const stored = localStorage.getItem(ONBOARDING_STEP_KEY);
-    if (!stored) return 0;
-    const parsed = Number(stored);
-    return Number.isFinite(parsed) ? parsed : 0;
-  } catch (error) {
-    console.error('Error loading onboarding step:', error);
-    return 0;
-  }
-}
-
-export function saveOnboardingStep(step: number): void {
-  try {
-    if (step <= 0) {
-      localStorage.removeItem(ONBOARDING_STEP_KEY);
-      return;
-    }
-    localStorage.setItem(ONBOARDING_STEP_KEY, String(step));
-  } catch (error) {
-    console.error('Error saving onboarding step:', error);
-  }
-}
 
 export function getUserConfig(): UserConfig {
   try {
