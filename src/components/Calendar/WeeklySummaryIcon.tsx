@@ -13,7 +13,9 @@ interface WeeklySummaryIconProps {
 }
 
 export function WeeklySummaryIcon({ weekStart, weekEnd, daysData, config, onClick }: WeeklySummaryIconProps) {
-  const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  const days = eachDayOfInterval({ start: weekStart, end: weekEnd }).filter(
+    (day) => day.getFullYear() === config.calendarYear
+  );
   const hasAnyData = days.some((day) => !!daysData[format(day, 'yyyy-MM-dd')]);
 
   if (!hasAnyData) {

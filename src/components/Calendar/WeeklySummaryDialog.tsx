@@ -33,10 +33,14 @@ export function WeeklySummaryDialog({
 }: WeeklySummaryDialogProps) {
   if (!weekStart || !weekEnd) return null;
 
-  const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  const days = eachDayOfInterval({ start: weekStart, end: weekEnd }).filter(
+    (day) => day.getFullYear() === config.calendarYear
+  );
   const hasAnyData = days.some((day) => !!daysData[format(day, 'yyyy-MM-dd')]);
   if (!hasAnyData) return null;
-  const weekNumber = getWeek(weekStart, { weekStartsOn: 1 });
+  const displayStart = days[0] ?? weekStart;
+  const displayEnd = days[days.length - 1] ?? weekEnd;
+  const weekNumber = getWeek(displayStart, { weekStartsOn: 1 });
 
   const getDayName = (date: Date) => {
     const dayIndex = date.getDay();
@@ -132,7 +136,7 @@ export function WeeklySummaryDialog({
               Resum Setmana {weekNumber}
             </DialogTitle>
             <p className="text-base font-medium text-muted-foreground">
-              {format(weekStart, 'd')} - {format(weekEnd, 'd')} de {MONTH_NAMES_CA[weekStart.getMonth()]}
+              {format(displayStart, 'd')} - {format(displayEnd, 'd')} de {MONTH_NAMES_CA[displayStart.getMonth()]}
             </p>
           </div>
         </DialogHeader>
