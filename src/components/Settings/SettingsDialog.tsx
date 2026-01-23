@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus, Download, Upload, Trash2, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import type { UserConfig, DayType, SchedulePeriod, ScheduleType } from '@/types';
-import { DAYS_OF_WEEK, DAY_NAMES_CA, MONTH_NAMES_CA, SCHEDULE_HOURS } from '@/lib/constants';
+import { APP_INFO, DAYS_OF_WEEK, DAY_NAMES_CA, MONTH_NAMES_CA, SCHEDULE_HOURS } from '@/lib/constants';
 import { format, parseISO, eachDayOfInterval, isWithinInterval, endOfMonth } from 'date-fns';
 import { exportAllData, importAllData, resetAllData, type ExportData } from '@/lib/storage';
 import { safeValidateExportData, MAX_IMPORT_FILE_SIZE } from '@/lib/validation';
@@ -269,11 +269,12 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
         </DialogHeader>
 
         <Tabs defaultValue="personal" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="personal">Personal</TabsTrigger>
             <TabsTrigger value="schedule">Horari</TabsTrigger>
             <TabsTrigger value="holidays">Festius</TabsTrigger>
             <TabsTrigger value="data">Dades</TabsTrigger>
+            <TabsTrigger value="authorship">Autoria</TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal" className="space-y-4 pt-4">
@@ -561,6 +562,39 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                 </AlertDialogContent>
               </AlertDialog>
             </div>
+          </TabsContent>
+
+          <TabsContent value="authorship" className="space-y-6 pt-4">
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold">Detalls del projecte</h3>
+              <p className="text-sm text-muted-foreground">
+                Informació bàsica sobre el programa i la seva autoria.
+              </p>
+            </div>
+            <dl className="grid gap-3 text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+                <dt className="text-muted-foreground">Nom del programa</dt>
+                <dd className="font-medium text-right">{APP_INFO.name}</dd>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+                <dt className="text-muted-foreground">Autor</dt>
+                <dd className="font-medium text-right">{APP_INFO.author}</dd>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+                <dt className="text-muted-foreground">Llicència</dt>
+                <dd className="font-medium text-right">
+                  <Badge variant="outline">{APP_INFO.license}</Badge>
+                </dd>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+                <dt className="text-muted-foreground">Any</dt>
+                <dd className="font-medium text-right">{APP_INFO.year}</dd>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <dt className="text-muted-foreground">Versió</dt>
+                <dd className="font-medium text-right">{APP_INFO.version}</dd>
+              </div>
+            </dl>
           </TabsContent>
         </Tabs>
 
