@@ -213,10 +213,7 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
                     key={day.date}
                     className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm"
                   >
-                    <div className="flex flex-col">
-                      <span>{formatVacationDate(day.date)}</span>
-                      <span className="text-xs text-muted-foreground">{formatAPHours(day.apHours)}</span>
-                    </div>
+                    <span>{formatVacationDate(day.date)} · {formatAPHours(day.apHours)}</span>
                     <span className="text-xs text-muted-foreground">Pendent</span>
                   </li>
                 ))}
@@ -235,10 +232,7 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
                     key={day.date}
                     className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm"
                   >
-                    <div className="flex flex-col">
-                      <span>{formatVacationDate(day.date)}</span>
-                      <span className="text-xs text-muted-foreground">{formatAPHours(day.apHours)}</span>
-                    </div>
+                    <span>{formatVacationDate(day.date)} · {formatAPHours(day.apHours)}</span>
                     <span className="text-xs text-muted-foreground">Aprovat</span>
                   </li>
                 ))}
