@@ -464,8 +464,9 @@ export function SettingsDialog({
               )}
 
               <div className="space-y-2">
-                {sortedSchedulePeriods.map((period) => {
+                {sortedSchedulePeriods.map((period, index) => {
                   const isYearStart = period.startDate === yearBounds.startString;
+                  const isFirstPeriod = index === 0;
                   return (
                     <div key={period.id} className="flex items-center gap-2 p-3 bg-muted rounded-lg flex-wrap">
                       <Select
@@ -509,7 +510,8 @@ export function SettingsDialog({
                         size="icon"
                         className="h-8 w-8"
                         onClick={() => removeSchedulePeriod(period.id)}
-                        disabled={sortedSchedulePeriods.length <= 1}
+                        disabled={sortedSchedulePeriods.length <= 1 || isFirstPeriod}
+                        title={isFirstPeriod ? 'La primera franja no es pot eliminar.' : undefined}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
