@@ -1,4 +1,4 @@
-import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check, Info } from 'lucide-react';
+import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check, Info, XCircle, AlertCircle, CheckCircle } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 
@@ -76,6 +76,29 @@ export function Legend() {
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Aprovat</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Resum setmanal</p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
+                  <XCircle className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-muted-foreground">Dèficit d'hores</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[hsl(var(--status-deficit))] text-[hsl(var(--status-deficit-foreground))]">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-muted-foreground">Setmana amb pendents</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[hsl(var(--status-complete))] text-[hsl(var(--status-complete-foreground))]">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-muted-foreground">Setmana completa</span>
               </div>
             </div>
           </div>
