@@ -504,17 +504,18 @@ export function SettingsDialog({
                       <span className="text-muted-foreground text-sm ml-auto">
                         ({SCHEDULE_HOURS[period.scheduleType]}h/dia)
                       </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => removeSchedulePeriod(period.id)}
-                        disabled={sortedSchedulePeriods.length <= 1 || isFirstPeriod}
-                        title={isFirstPeriod ? 'La primera franja no es pot eliminar.' : undefined}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      {!isFirstPeriod && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => removeSchedulePeriod(period.id)}
+                          disabled={sortedSchedulePeriods.length <= 1}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   );
                 })}
