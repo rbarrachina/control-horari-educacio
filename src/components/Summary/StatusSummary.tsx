@@ -115,6 +115,12 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
       .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime()),
     [daysData]
   );
+  const approvedFlexDaysList = useMemo(
+    () => Object.values(daysData)
+      .filter((day) => day.dayStatus === 'flexibilitat' && day.requestStatus === 'aprovat')
+      .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime()),
+    [daysData]
+  );
   const formatVacationDate = (date: string) => {
     const parsed = parseISO(date);
     return `${format(parsed, 'd')} de ${MONTH_NAMES_CA[parsed.getMonth()]}`;
@@ -261,7 +267,7 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
         </DialogHeader>
         <div className="space-y-5">
           <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-            Les setmanes amb diferència superior a 30min computen en FX fins a una màxim de 25h
+            Les diferències setmanals superiors a 30 minuts s’acumulen a la bossa de flexibilitat horària, amb un límit màxim de 25 hores.
           </p>
 
           <div className="space-y-2">
@@ -284,15 +290,15 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold">Dies aprovats (AP)</h3>
-            {approvedAPDaysList.length > 0 ? (
+            <h3 className="text-sm font-semibold">Dies aprovats</h3>
+            {approvedFlexDaysList.length > 0 ? (
               <ul className="space-y-2">
-                {approvedAPDaysList.map((day) => (
+                {approvedFlexDaysList.map((day) => (
                   <li
                     key={day.date}
                     className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm"
                   >
-                    <span>{formatVacationDate(day.date)} · {formatAPHours(day.apHours)}</span>
+                    <span>{formatVacationDate(day.date)} · {formatFlexHours(day.flexHours)}</span>
                     <span className="text-xs text-muted-foreground">Aprovat</span>
                   </li>
                 ))}
