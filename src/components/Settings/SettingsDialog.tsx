@@ -146,6 +146,10 @@ export function SettingsDialog({
   const yearBounds = getYearBounds(localConfig.calendarYear);
 
   const handleSave = () => {
+    if (!scheduleValidation.isValid) {
+      toast.error(`Falten ${scheduleValidation.missingDays} dies per definir`);
+      return;
+    }
     onSave({ ...localConfig, schedulePeriods: sortedSchedulePeriods });
     if (isOnboarding) {
       if (onboardingStep < 3) {
@@ -678,7 +682,7 @@ export function SettingsDialog({
               Cancel·lar
             </Button>
           )}
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} disabled={!scheduleValidation.isValid}>
             {isOnboarding ? (onboardingStep < 3 ? 'Desar i continuar' : 'Desar i finalitzar') : 'Desar canvis'}
           </Button>
         </DialogFooter>
