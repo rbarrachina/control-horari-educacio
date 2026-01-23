@@ -14,7 +14,7 @@ import {
   formatHoursMinutes
 } from '@/lib/timeCalculations';
 import { DAY_NAMES_CA, MONTH_NAMES_CA } from '@/lib/constants';
-import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check, MoreHorizontal } from 'lucide-react';
+import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check, MoreHorizontal, AlertTriangle } from 'lucide-react';
 
 interface WeeklySummaryDialogProps {
   weekStart: Date | null;
@@ -165,6 +165,10 @@ export function WeeklySummaryDialog({
             const statusCardClass = getStatusCardClass(dayData, holiday, worked, theoretical);
             const schedule = getScheduleDisplay(dayData);
             const showStatusBadge = statusLabel !== 'Laboral';
+            const needsApproval = !holiday
+              && dayData
+              && ['vacances', 'assumpte_propi', 'flexibilitat', 'altres'].includes(dayData.dayStatus)
+              && dayData.requestStatus === 'pendent';
             
             return (
               <div
@@ -186,6 +190,12 @@ export function WeeklySummaryDialog({
                         <Badge variant="outline" className="text-xs flex items-center gap-1">
                           {StatusIcon && <StatusIcon className="w-3 h-3" />}
                           {statusLabel}
+                        </Badge>
+                      )}
+                      {needsApproval && (
+                        <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          Falta aprovar
                         </Badge>
                       )}
                       {dayData?.requestStatus === 'aprovat' && (
