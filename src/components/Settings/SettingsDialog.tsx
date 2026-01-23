@@ -15,22 +15,65 @@ import { exportAllData, importAllData, resetAllData, type ExportData } from '@/l
 import { safeValidateExportData, MAX_IMPORT_FILE_SIZE } from '@/lib/validation';
 import { toast } from 'sonner';
 
+const ONBOARDING_TABS = {
+  1: 'personal',
+  2: 'schedule',
+  3: 'holidays',
+} as const;
+
+const SETTINGS_TABS = [
+  { value: 'personal', label: 'Personal' },
+  { value: 'schedule', label: 'Horari' },
+  { value: 'holidays', label: 'Festius' },
+  { value: 'data', label: 'Dades' },
+  { value: 'authorship', label: 'Autoria' },
+] as const;
+
 interface SettingsDialogProps {
   open: boolean;
   config: UserConfig;
   onClose: () => void;
   onSave: (config: UserConfig) => void;
   onDataReset?: () => void;
+  onboardingStep?: number;
+  onOnboardingStepChange?: (step: number) => void;
 }
 
-export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: SettingsDialogProps) {
+export function SettingsDialog({
+  open,
+  config,
+  onClose,
+  onSave,
+  onDataReset,
+  onboardingStep = 0,
+  onOnboardingStepChange,
+}: SettingsDialogProps) {
   const [localConfig, setLocalConfig] = useState<UserConfig>(config);
   const [newHoliday, setNewHoliday] = useState('');
+  const [activeTab, setActiveTab] = useState<'personal' | 'schedule' | 'holidays' | 'data' | 'authorship'>('personal');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isOnboarding = onboardingStep > 0;
+  const visibleTabs = SETTINGS_TABS;
+  const isTabEnabled = (value: typeof SETTINGS_TABS[number]['value']) => {
+    if (!isOnboarding) return true;
+    if (value === 'personal') return true;
+    if (value === 'schedule') return onboardingStep >= 2;
+    if (value === 'holidays') return onboardingStep >= 3;
+    return false;
+  };
 
   useEffect(() => {
     setLocalConfig(config);
   }, [config]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (isOnboarding) {
+      setActiveTab(ONBOARDING_TABS[onboardingStep] ?? 'personal');
+      return;
+    }
+    setActiveTab('personal');
+  }, [open, isOnboarding, onboardingStep]);
 
   const getYearBounds = (year: number) => ({
     start: new Date(year, 0, 1),
@@ -103,6 +146,13 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
 
   const handleSave = () => {
     onSave({ ...localConfig, schedulePeriods: sortedSchedulePeriods });
+    if (isOnboarding) {
+      if (onboardingStep < 3) {
+        onOnboardingStepChange?.(onboardingStep + 1);
+        return;
+      }
+      onOnboardingStepChange?.(0);
+    }
     onClose();
   };
 
@@ -261,20 +311,30 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
     setTimeout(() => window.location.reload(), 1000);
   };
 
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && isOnboarding) {
+      return;
+    }
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Configuració</DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="personal" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="personal">Personal</TabsTrigger>
-            <TabsTrigger value="schedule">Horari</TabsTrigger>
-            <TabsTrigger value="holidays">Festius</TabsTrigger>
-            <TabsTrigger value="data">Dades</TabsTrigger>
-            <TabsTrigger value="authorship">Autoria</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList
+            className="grid w-full"
+            style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` }}
+          >
+            {visibleTabs.map(tab => (
+              <TabsTrigger key={tab.value} value={tab.value} disabled={!isTabEnabled(tab.value)}>
+                {tab.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="personal" className="space-y-4 pt-4">
@@ -332,7 +392,8 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
 
           </TabsContent>
 
-          <TabsContent value="schedule" className="space-y-4 pt-4">
+          {(!isOnboarding || onboardingStep >= 2) && (
+            <TabsContent value="schedule" className="space-y-4 pt-4">
             <div className="mb-6 flex items-center gap-3">
               <Label htmlFor="defaultStart" className="min-w-[200px]">
                 Hora d'inici per defecte
@@ -444,9 +505,11 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                 ))}
               </div>
             </div>
-          </TabsContent>
+            </TabsContent>
+          )}
 
-          <TabsContent value="holidays" className="space-y-4 pt-4">
+          {(!isOnboarding || onboardingStep >= 3) && (
+            <TabsContent value="holidays" className="space-y-4 pt-4">
             <div className="flex gap-2">
               <Input
                 type="date"
@@ -480,9 +543,11 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                 );
               })}
             </div>
-          </TabsContent>
+            </TabsContent>
+          )}
 
-          <TabsContent value="data" className="space-y-6 pt-4">
+          {!isOnboarding && (
+            <TabsContent value="data" className="space-y-6 pt-4">
             {/* Privacy Notice */}
             <div className="flex gap-3 p-3 bg-muted/50 rounded-lg border">
               <Info className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
@@ -562,9 +627,11 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                 </AlertDialogContent>
               </AlertDialog>
             </div>
-          </TabsContent>
+            </TabsContent>
+          )}
 
-          <TabsContent value="authorship" className="space-y-6 pt-4">
+          {!isOnboarding && (
+            <TabsContent value="authorship" className="space-y-6 pt-4">
             <div className="space-y-1">
               <h3 className="text-lg font-semibold">Detalls del projecte</h3>
             </div>
@@ -592,15 +659,18 @@ export function SettingsDialog({ open, config, onClose, onSave, onDataReset }: S
                 <dd className="font-medium text-right">{APP_INFO.version}</dd>
               </div>
             </dl>
-          </TabsContent>
+            </TabsContent>
+          )}
         </Tabs>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel·lar
-          </Button>
+          {!isOnboarding && (
+            <Button variant="outline" onClick={onClose}>
+              Cancel·lar
+            </Button>
+          )}
           <Button onClick={handleSave}>
-            Desar canvis
+            {isOnboarding ? (onboardingStep < 3 ? 'Desar i continuar' : 'Desar i finalitzar') : 'Desar canvis'}
           </Button>
         </DialogFooter>
       </DialogContent>
