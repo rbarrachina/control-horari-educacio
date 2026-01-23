@@ -71,6 +71,23 @@ npm run preview   # previsualitza el build localment
 
 ---
 
+## 🔎 Com provar un PR a GitHub (preview abans del merge)
+
+Si obres un **Pull Request**, hi ha un workflow que genera una **preview de GitHub Pages** per comprovar els canvis sense fer merge.
+
+### Passos ràpids
+1. Obre o actualitza el PR.
+2. Ves a la pestanya **Actions** del repositori.
+3. Obre el workflow **“Preview Vite on GitHub Pages (PR)”**.
+4. A l’execució del job **deploy**, trobaràs un enllaç **“View deployment”** amb la URL de la preview.
+
+### Què pots fer per provar-ho ràpid
+- Fes un canvi petit (p. ex. en un text de la UI).
+- Obre un PR amb aquest canvi.
+- Espera que el workflow acabi i obre la URL de preview.
+
+---
+
 ## 🔐 On es guarden les dades?
 
 L’aplicació **guarda la informació al navegador** (sense backend).  
