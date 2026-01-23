@@ -21,8 +21,8 @@ export function Header({ config, daysData, onOpenSettings }: HeaderProps) {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-lg">
-                <Clock className="w-6 h-6 text-primary-foreground" />
+              <div className="p-2 bg-red-500 rounded-lg">
+                <Clock className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-foreground">Control horari</h1>
