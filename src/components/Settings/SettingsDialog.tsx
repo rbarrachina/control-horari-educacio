@@ -146,6 +146,10 @@ export function SettingsDialog({
   const yearBounds = getYearBounds(localConfig.calendarYear);
 
   const handleSave = () => {
+    if (!scheduleValidation.isValid) {
+      toast.error(`Falten ${scheduleValidation.missingDays} dies per definir`);
+      return;
+    }
     onSave({ ...localConfig, schedulePeriods: sortedSchedulePeriods });
     if (isOnboarding) {
       if (onboardingStep < 3) {
@@ -175,9 +179,12 @@ export function SettingsDialog({
       if (periodIndex === -1) return prev;
 
       const updatedPeriod = { ...prev.schedulePeriods[periodIndex] };
+      const { startString: yearStart } = getYearBounds(prev.calendarYear);
 
       if (field === 'scheduleType') {
         updatedPeriod.scheduleType = value as ScheduleType;
+      } else if (field === 'startDate' && updatedPeriod.startDate === yearStart) {
+        return prev;
       } else {
         updatedPeriod[field] = value;
       }
@@ -457,53 +464,58 @@ export function SettingsDialog({
               )}
 
               <div className="space-y-2">
-                {sortedSchedulePeriods.map((period) => (
-                  <div key={period.id} className="flex items-center gap-2 p-3 bg-muted rounded-lg flex-wrap">
-                    <Select
-                      value={period.scheduleType}
-                      onValueChange={(v) => updateSchedulePeriod(period.id, 'scheduleType', v)}
-                    >
-                      <SelectTrigger className="w-24">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="hivern">Hivern</SelectItem>
-                        <SelectItem value="estiu">Estiu</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <span className="text-sm text-muted-foreground">de</span>
-                    <Input
-                      type="date"
-                      className="w-36"
-                      value={period.startDate}
-                      onChange={(e) => updateSchedulePeriod(period.id, 'startDate', e.target.value)}
-                      min={yearBounds.startString}
-                      max={yearBounds.endString}
-                    />
-                    <span className="text-sm text-muted-foreground">a</span>
-                    <Input
-                      type="date"
-                      className="w-36"
-                      value={period.endDate}
-                      onChange={(e) => updateSchedulePeriod(period.id, 'endDate', e.target.value)}
-                      min={yearBounds.startString}
-                      max={yearBounds.endString}
-                    />
-                    <span className="text-muted-foreground text-sm ml-auto">
-                      ({SCHEDULE_HOURS[period.scheduleType]}h/dia)
-                    </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => removeSchedulePeriod(period.id)}
-                      disabled={sortedSchedulePeriods.length <= 1}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
+                {sortedSchedulePeriods.map((period) => {
+                  const isYearStart = period.startDate === yearBounds.startString;
+                  return (
+                    <div key={period.id} className="flex items-center gap-2 p-3 bg-muted rounded-lg flex-wrap">
+                      <Select
+                        value={period.scheduleType}
+                        onValueChange={(v) => updateSchedulePeriod(period.id, 'scheduleType', v)}
+                      >
+                        <SelectTrigger className="w-24">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="hivern">Hivern</SelectItem>
+                          <SelectItem value="estiu">Estiu</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <span className="text-sm text-muted-foreground">de</span>
+                      <Input
+                        type="date"
+                        className="w-36"
+                        value={period.startDate}
+                        onChange={(e) => updateSchedulePeriod(period.id, 'startDate', e.target.value)}
+                        min={yearBounds.startString}
+                        max={yearBounds.endString}
+                        disabled={isYearStart}
+                        title={isYearStart ? 'El dia 01/01 no es pot editar.' : undefined}
+                      />
+                      <span className="text-sm text-muted-foreground">a</span>
+                      <Input
+                        type="date"
+                        className="w-36"
+                        value={period.endDate}
+                        onChange={(e) => updateSchedulePeriod(period.id, 'endDate', e.target.value)}
+                        min={yearBounds.startString}
+                        max={yearBounds.endString}
+                      />
+                      <span className="text-muted-foreground text-sm ml-auto">
+                        ({SCHEDULE_HOURS[period.scheduleType]}h/dia)
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => removeSchedulePeriod(period.id)}
+                        disabled={sortedSchedulePeriods.length <= 1}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
             </TabsContent>
@@ -670,7 +682,7 @@ export function SettingsDialog({
               Cancel·lar
             </Button>
           )}
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} disabled={!scheduleValidation.isValid}>
             {isOnboarding ? (onboardingStep < 3 ? 'Desar i continuar' : 'Desar i finalitzar') : 'Desar canvis'}
           </Button>
         </DialogFooter>
