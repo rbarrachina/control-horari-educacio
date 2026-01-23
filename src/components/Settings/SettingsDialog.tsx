@@ -59,6 +59,7 @@ export function SettingsDialog({
     if (value === 'personal') return true;
     if (value === 'schedule') return onboardingStep >= 2;
     if (value === 'holidays') return onboardingStep >= 3;
+    if (value === 'data' || value === 'authorship') return onboardingStep >= 3;
     return false;
   };
 
@@ -546,7 +547,7 @@ export function SettingsDialog({
             </TabsContent>
           )}
 
-          {!isOnboarding && (
+          {(!isOnboarding || onboardingStep >= 3) && (
             <TabsContent value="data" className="space-y-6 pt-4">
             {/* Privacy Notice */}
             <div className="flex gap-3 p-3 bg-muted/50 rounded-lg border">
@@ -630,7 +631,7 @@ export function SettingsDialog({
             </TabsContent>
           )}
 
-          {!isOnboarding && (
+          {(!isOnboarding || onboardingStep >= 3) && (
             <TabsContent value="authorship" className="space-y-6 pt-4">
             <div className="space-y-1">
               <h3 className="text-lg font-semibold">Detalls del projecte</h3>
