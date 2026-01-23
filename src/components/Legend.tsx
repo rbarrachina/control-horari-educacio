@@ -1,4 +1,4 @@
-import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check, Info, XCircle, AlertCircle, CheckCircle } from 'lucide-react';
+import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check, Info, XCircle, AlertCircle, CheckCircle, MoreHorizontal } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 
@@ -64,6 +64,10 @@ export function Legend() {
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Flexibilitat</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Altres</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
