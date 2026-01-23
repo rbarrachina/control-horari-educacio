@@ -53,7 +53,14 @@ export function SettingsDialog({
   const [activeTab, setActiveTab] = useState<'personal' | 'schedule' | 'holidays' | 'data' | 'authorship'>('personal');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isOnboarding = onboardingStep > 0;
-  const visibleTabs = isOnboarding ? SETTINGS_TABS.slice(0, onboardingStep) : SETTINGS_TABS;
+  const visibleTabs = SETTINGS_TABS;
+  const isTabEnabled = (value: typeof SETTINGS_TABS[number]['value']) => {
+    if (!isOnboarding) return true;
+    if (value === 'personal') return true;
+    if (value === 'schedule') return onboardingStep >= 2;
+    if (value === 'holidays') return onboardingStep >= 3;
+    return false;
+  };
 
   useEffect(() => {
     setLocalConfig(config);
@@ -324,7 +331,7 @@ export function SettingsDialog({
             style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` }}
           >
             {visibleTabs.map(tab => (
-              <TabsTrigger key={tab.value} value={tab.value}>
+              <TabsTrigger key={tab.value} value={tab.value} disabled={!isTabEnabled(tab.value)}>
                 {tab.label}
               </TabsTrigger>
             ))}
