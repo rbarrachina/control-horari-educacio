@@ -13,7 +13,7 @@ export function useTimeTracking() {
 
   useEffect(() => {
     const loadedConfig = getUserConfig();
-    const loadedDays = getDaysData();
+    const loadedDays = getDaysData(loadedConfig);
     setConfig(loadedConfig);
     setDaysData(loadedDays);
     previousDaysDataRef.current = loadedDays;
