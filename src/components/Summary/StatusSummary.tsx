@@ -15,6 +15,7 @@ interface StatusSummaryProps {
 
 export function StatusSummary({ config, daysData, variant = 'default' }: StatusSummaryProps) {
   const [vacationDialogOpen, setVacationDialogOpen] = useState(false);
+  const [apDialogOpen, setApDialogOpen] = useState(false);
   const formatDuration = (hours: number): string => {
     const wholeHours = Math.floor(hours);
     let minutes = Math.round((hours % 1) * 60);
@@ -95,10 +96,23 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
       .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime()),
     [daysData]
   );
+  const pendingAPDaysList = useMemo(
+    () => Object.values(daysData)
+      .filter((day) => day.dayStatus === 'assumpte_propi' && day.requestStatus === 'pendent')
+      .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime()),
+    [daysData]
+  );
+  const approvedAPDaysList = useMemo(
+    () => Object.values(daysData)
+      .filter((day) => day.dayStatus === 'assumpte_propi' && day.requestStatus === 'aprovat')
+      .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime()),
+    [daysData]
+  );
   const formatVacationDate = (date: string) => {
     const parsed = parseISO(date);
     return `${format(parsed, 'd')} de ${MONTH_NAMES_CA[parsed.getMonth()]}`;
   };
+  const formatAPHours = (hours: number | undefined) => formatDuration(hours || 0);
   const summaryItems = [
     {
       key: 'vacances',
@@ -183,11 +197,66 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
       </DialogContent>
     </Dialog>
   );
+  const apDialog = (
+    <Dialog open={apDialogOpen} onOpenChange={setApDialogOpen}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Assumptes propis</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold">Dies per aprovar</h3>
+            {pendingAPDaysList.length > 0 ? (
+              <ul className="space-y-2">
+                {pendingAPDaysList.map((day) => (
+                  <li
+                    key={day.date}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm"
+                  >
+                    <div className="flex flex-col">
+                      <span>{formatVacationDate(day.date)}</span>
+                      <span className="text-xs text-muted-foreground">{formatAPHours(day.apHours)}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Pendent</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">No hi ha dies pendents d'aprovació.</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold">Dies aprovats</h3>
+            {approvedAPDaysList.length > 0 ? (
+              <ul className="space-y-2">
+                {approvedAPDaysList.map((day) => (
+                  <li
+                    key={day.date}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm"
+                  >
+                    <div className="flex flex-col">
+                      <span>{formatVacationDate(day.date)}</span>
+                      <span className="text-xs text-muted-foreground">{formatAPHours(day.apHours)}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Aprovat</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">Encara no hi ha dies aprovats.</p>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
   if (variant === 'compact') {
     return (
       <>
         {vacationDialog}
+        {apDialog}
         <div className="flex flex-wrap items-center gap-3">
           {summaryItems.map((item) => {
             const Icon = item.icon;
@@ -217,6 +286,18 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
                 </button>
               );
             }
+            if (item.key === 'ap') {
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setApDialogOpen(true)}
+                  className="text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  {content}
+                </button>
+              );
+            }
             return (
               <div key={item.key}>
                 {content}
@@ -231,6 +312,7 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
   return (
     <>
       {vacationDialog}
+      {apDialog}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {summaryItems.map((item) => {
           const Icon = item.icon;
@@ -262,6 +344,18 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
                 key={item.key}
                 type="button"
                 onClick={() => setVacationDialogOpen(true)}
+                className="text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                {content}
+              </button>
+            );
+          }
+          if (item.key === 'ap') {
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setApDialogOpen(true)}
                 className="text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 {content}
