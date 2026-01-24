@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Legend } from '@/components/Legend';
 import { StatusSummary } from '@/components/Summary/StatusSummary';
-import { Settings, Clock } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import type { DayData, UserConfig } from '@/types';
 
 interface HeaderProps {
@@ -21,11 +21,12 @@ export function Header({ config, daysData, onOpenSettings }: HeaderProps) {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-lg">
-                <Clock className="w-6 h-6 text-primary-foreground" />
-              </div>
+              <img
+                src="/control-horari-logo.svg"
+                alt="Control horari"
+                className="h-12 w-auto"
+              />
               <div>
-                <h1 className="text-xl font-bold text-foreground">Control horari</h1>
                 <p className="text-sm text-muted-foreground">
                   {userName} · {config.calendarYear}
                 </p>
