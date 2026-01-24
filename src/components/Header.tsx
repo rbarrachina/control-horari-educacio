@@ -21,15 +21,16 @@ export function Header({ config, daysData, onOpenSettings }: HeaderProps) {
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <img
                 src={controlHorariLogo}
                 alt="Control horari"
                 className="h-12 w-auto"
               />
               <div>
-                <p className="text-sm text-muted-foreground">
-                  {userName} · {config.calendarYear}
+                <p className="text-sm text-muted-foreground text-right leading-tight">
+                  <span className="block">{userName}</span>
+                  <span className="block">{config.calendarYear}</span>
                 </p>
               </div>
             </div>
