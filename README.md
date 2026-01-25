@@ -1,10 +1,10 @@
 # Control horari Educació
 
 Aplicació web personal per portar el **control horari** (jornades, bossa de flexibilitat, vacances i assumptes personals) per a personal d’educació.  
-Funciona **100% al navegador** (sense servidor) i es pot desplegar fàcilment a **GitHub Pages** o publicar des de **Lovable**.
+Funciona **100% al navegador** (sense servidor) i es pot desplegar fàcilment a **GitHub Pages**.
 
-> 🧩 **App (Lovable)**: https://control-horari-educacio.lovable.app/  
-> 🌐 **Demo (GitHub Pages)**: https://rbarrachina.github.io/control-horari-educacio/ *(si està desplegat)*
+> ✅ **App (Vercel)**: https://control-horari-educacio.vercel.app/  
+> 🌐 **App (GitHub Pages)**: https://rbarrachina.github.io/control-horari-educacio/
 
 ---
 
@@ -94,7 +94,7 @@ Claus utilitzades:
 2. Fes clic dret → **Inspecciona**
 3. Ves a **Application**
 4. Mira:
-   - **Local Storage** → `https://control-horari-educacio.lovable.app`
+   - **Local Storage** → `https://control-horari-educacio.vercel.app`
    - **IndexedDB** *(no s’utilitza actualment)*
    - **Session Storage**
 
@@ -102,10 +102,7 @@ Claus utilitzades:
 
 ## 🌍 Desplegament
 
-### Opció A — Publicar des de Lovable
-A Lovable: **Share → Publish**.
-
-### Opció B — GitHub Pages (Vite) ✅
+### Opció A — GitHub Pages (Vite) ✅
 
 El projecte ja té configurat el `base` per GitHub Pages segons el mode de build.
 
