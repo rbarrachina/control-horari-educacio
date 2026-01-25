@@ -148,3 +148,5 @@ Aquest projecte es distribueix sota la **Apache License 2.0**.
 Autoria: **Rafa Barrachina** (GitHub: `@rbarrachina`)
 
 Si redistribueixes el projecte (o una derivació), cal conservar aquests avisos i el crèdit de l’autor.
+
+(Prova) Branca dev activa ✅
