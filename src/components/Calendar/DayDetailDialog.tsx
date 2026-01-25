@@ -126,9 +126,6 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
   );
   const availableAPHours = Math.max(0, config.totalAPHours - config.usedAPHours + previousAPHours);
   const maxFlexHours = Math.min(theoreticalHours, availableFlexHours);
-  const maxMinutesForAbsence = absenceType === 'flexibilitat'
-    ? Math.max(0, Math.min(59, Math.floor((maxFlexHours - absenceHours) * 60)))
-    : 59;
   
   // Total worked hours = actual worked + AP/FX hours (if applicable)
   const totalWorkedHours = absenceType === 'vacances' 
@@ -207,13 +204,6 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
     onSave(newDayData);
     onClose();
   };
-
-  useEffect(() => {
-    if (absenceType !== 'flexibilitat') return;
-    if (absenceMinutes > maxMinutesForAbsence) {
-      setAbsenceMinutes(maxMinutesForAbsence);
-    }
-  }, [absenceType, absenceMinutes, maxMinutesForAbsence]);
 
   return (
     <Dialog open={!!date} onOpenChange={() => onClose()}>
@@ -423,12 +413,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                     step="1"
                     value={absenceHours}
                     onChange={(e) => {
-                      const nextHours = parseInt(e.target.value) || 0;
-                      setAbsenceHours(nextHours);
-                      if (absenceType === 'flexibilitat') {
-                        const nextMaxMinutes = Math.max(0, Math.min(59, Math.floor((maxFlexHours - nextHours) * 60)));
-                        setAbsenceMinutes((prev) => Math.min(prev, nextMaxMinutes));
-                      }
+                      setAbsenceHours(parseInt(e.target.value) || 0);
                       if (absenceType === 'assumpte_propi') {
                         setApError('');
                       }
@@ -441,13 +426,11 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                     id="absenceMinutes"
                     type="number"
                     min="0"
-                    max={maxMinutesForAbsence}
+                    max="59"
                     step="1"
                     value={absenceMinutes}
                     onChange={(e) => {
-                      const nextMinutes = parseInt(e.target.value) || 0;
-                      const clampedMinutes = Math.max(0, Math.min(nextMinutes, maxMinutesForAbsence));
-                      setAbsenceMinutes(clampedMinutes);
+                      setAbsenceMinutes(parseInt(e.target.value) || 0);
                       if (absenceType === 'assumpte_propi') {
                         setApError('');
                       }
