@@ -1,17 +1,16 @@
 # Control horari
 
-Aplicació web personal per portar el **control horari** (jornades, bossa de flexibilitat, vacances i assumptes personals) per a personal d’educació.  
+Aplicació web personal per portar el **control horari** (jornades, bossa de flexibilitat, vacances i assumptes personals).  
 Funciona **100% al navegador** (sense servidor) i es pot desplegar fàcilment a **GitHub Pages**.
 
-> ✅ **App (Vercel)**: https://control-horari-educacio.vercel.app/  
-> 🌐 **App (GitHub Pages)**: https://rbarrachina.github.io/control-horari-educacio/
+> ✅ **App (Vercel)**: https://sigma-horari.vercel.app/  
+> 🌐 **App (GitHub Pages)**: https://rbarrachina.github.io/sigma-horari/
 
 ---
 
 ## ✅ Estat del projecte
 
-Aplicació **operativa** amb configuració inicial guiada i calendari interactiu per a l’any seleccionat (per defecte **2026**)....
-Aquest README explica:
+Aplicació **operativa** amb configuració inicial guiada i calendari interactiu per a l’any seleccionat. Aquest README explica:
 
 - què fa l’app 🎯
 - com executar-la en local 🧪
@@ -100,32 +99,9 @@ Claus utilitzades:
 
 ---
 
-## 🌍 Desplegament
-
-### Opció A — GitHub Pages (Vite) ✅
-
-El projecte ja té configurat el `base` per GitHub Pages segons el mode de build.
-
-```bash
-npm run build:gh
-```
-
-Això crea `dist/` amb `base` apuntant a `/control-horari-educacio/`.
-
-Després, a **Settings → Pages**:
-- **Build and deployment**: “GitHub Actions”
-- Deploy de `dist/`
-
-> Si el teu Pages ja funciona, genial 🙌 Si mai torna a fallar, revisa que la build s’hagi fet amb `build:gh`.
-
----
-
 ## 🤝 Contribuir
 
-Issues i PRs són benvinguts. Si obres un PR, explica:
-- què resol
-- com provar-ho
-- captures (si afecta UI)
+Issues són benvinguts.
 
 ---
 
