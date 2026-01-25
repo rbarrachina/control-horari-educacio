@@ -10,7 +10,7 @@ Funciona **100% al navegador** (sense servidor) i es pot desplegar fàcilment a 
 
 ## ✅ Estat del projecte
 
-Aplicació **operativa** amb configuració inicial guiada i calendari interactiu per a l’any seleccionat (per defecte **2026**)..  
+Aplicació **operativa** amb configuració inicial guiada i calendari interactiu per a l’any seleccionat (per defecte **2026**)...
 Aquest README explica:
 
 - què fa l’app 🎯
