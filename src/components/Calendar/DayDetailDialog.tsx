@@ -126,9 +126,6 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
   );
   const availableAPHours = Math.max(0, config.totalAPHours - config.usedAPHours + previousAPHours);
   const maxFlexHours = Math.min(theoreticalHours, availableFlexHours);
-  const maxFlexHoursInt = Math.floor(maxFlexHours);
-  const maxFlexMinutes = Math.min(59, Math.round((maxFlexHours - maxFlexHoursInt) * 60));
-  const getFlexMinutesLimit = (hoursValue: number) => (hoursValue >= maxFlexHoursInt ? maxFlexMinutes : 59);
   
   // Total worked hours = actual worked + AP/FX hours (if applicable)
   const totalWorkedHours = absenceType === 'vacances' 
@@ -416,17 +413,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                     step="1"
                     value={absenceHours}
                     onChange={(e) => {
-                      const nextHours = parseInt(e.target.value) || 0;
-                      const cappedHours = absenceType === 'flexibilitat'
-                        ? Math.min(nextHours, maxFlexHoursInt)
-                        : nextHours;
-                      setAbsenceHours(cappedHours);
-                      if (absenceType === 'flexibilitat') {
-                        const minutesLimit = getFlexMinutesLimit(cappedHours);
-                        if (absenceMinutes > minutesLimit) {
-                          setAbsenceMinutes(minutesLimit);
-                        }
-                      }
+                      setAbsenceHours(parseInt(e.target.value) || 0);
                       if (absenceType === 'assumpte_propi') {
                         setApError('');
                       }
@@ -439,15 +426,11 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
                     id="absenceMinutes"
                     type="number"
                     min="0"
-                    max={absenceType === 'flexibilitat' ? getFlexMinutesLimit(absenceHours) : 59}
+                    max="59"
                     step="1"
                     value={absenceMinutes}
                     onChange={(e) => {
-                      const nextMinutes = parseInt(e.target.value) || 0;
-                      const minutesLimit = absenceType === 'flexibilitat'
-                        ? getFlexMinutesLimit(absenceHours)
-                        : 59;
-                      setAbsenceMinutes(Math.min(nextMinutes, minutesLimit));
+                      setAbsenceMinutes(parseInt(e.target.value) || 0);
                       if (absenceType === 'assumpte_propi') {
                         setApError('');
                       }
