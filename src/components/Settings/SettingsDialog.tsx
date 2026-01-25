@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Download, Upload, Trash2, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { X, Plus, Download, Upload, Trash2, AlertTriangle, AlertCircle, Info, Github } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import type { UserConfig, DayType, SchedulePeriod, ScheduleType } from '@/types';
 import { APP_INFO, DAYS_OF_WEEK, DAY_NAMES_CA, MONTH_NAMES_CA, SCHEDULE_HOURS } from '@/lib/constants';
@@ -658,7 +658,18 @@ export function SettingsDialog({
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
                 <dt className="text-muted-foreground">Autor</dt>
-                <dd className="font-medium text-right">{APP_INFO.author}</dd>
+                <dd className="flex items-center gap-2 font-medium text-right">
+                  <span>{APP_INFO.author}</span>
+                  <a
+                    href="https://github.com/rbarrachina"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label="Perfil de Github de Rafa Barrachina"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Github className="h-4 w-4" />
+                  </a>
+                </dd>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
                 <dt className="text-muted-foreground">Llicència</dt>
