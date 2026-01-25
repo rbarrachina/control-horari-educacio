@@ -73,7 +73,7 @@ export const MAX_FLEXIBILITY_HOURS = 25;
 export const MIN_WEEKLY_SURPLUS_FOR_FLEXIBILITY = 0.5; // 30 minutes
 
 export const APP_INFO = {
-  name: 'Control horari Educació',
+  name: 'Control horari (DEV)',
   author: 'Rafa Barrachina',
   license: 'Apache License 2.0',
   year: 2026,
