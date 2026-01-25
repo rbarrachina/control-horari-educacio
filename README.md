@@ -1,6 +1,6 @@
 # Control horari Educació
 
-Aplicació web personal per portar el **control horari** (jornades, bossa de flexibilitat, vacances i assumptes personals) **a partir de dades d’ATRI**.  
+Aplicació web personal per portar el **control horari** (jornades, bossa de flexibilitat, vacances i assumptes personals) per a personal d’educació.  
 Funciona **100% al navegador** (sense servidor) i es pot desplegar fàcilment a **GitHub Pages** o publicar des de **Lovable**.
 
 > 🧩 **App (Lovable)**: https://control-horari-educacio.lovable.app/  
@@ -10,29 +10,31 @@ Funciona **100% al navegador** (sense servidor) i es pot desplegar fàcilment a 
 
 ## ✅ Estat del projecte
 
-Ara mateix el projecte està en fase **MVP / TODO** (pendent d’acabar i polir funcionalitats).  
-Aquest README deixa clar:
+Aplicació **operativa** amb configuració inicial guiada i calendari interactiu per a l’any seleccionat (per defecte **2026**).  
+Aquest README explica:
 
-- què vol ser l’app 🎯
+- què fa l’app 🎯
 - com executar-la en local 🧪
 - com publicar-la 🚀
 - on guarda les dades 🔐
 
 ---
 
-## ✨ Objectiu i funcionalitats (roadmap)
+## ✨ Funcionalitats actuals
 
-**Objectiu:** tenir una eina personal, ràpida i privada per controlar el còmput d’hores.
+**Objectiu:** tenir una eina personal, ràpida i privada per controlar el còmput d’hores i incidències.
 
-Funcionalitats previstes (a completar):
+**Inclou actualment:**
 
-- Configuració de l’usuari (nom/cognom, dies de vacances, hores d’assumptes personals)
-- Definició de dies **presencials** i de **teletreball** (dl–dv)
-- Gestió de la **flexibilitat horària** (0–25 h)
-- Registre de jornades amb càlculs automàtics
-- Exportació / importació (JSON) per moure dades entre navegadors
-
-> Quan l’app estigui més avançada, podem marcar què està **✅ fet**, **🧪 en proves** i **🛠️ pendent**.
+- Assistència d’onboarding amb configuració guiada (Personal → Horari → Festius)
+- Configuració personal (nom, any de calendari, dies de vacances, hores d’AP)
+- Definició de dies **presencials** i de **teletreball** per setmana
+- Franges **estiu/hivern** amb períodes configurables que cobreixen tot l’any
+- Calendari anual amb detall per dia (inici/fi, doble torn, notes)
+- Estats de dia: laboral, festiu, vacances, assumptes propis, flexibilitat i altres
+- Resums setmanals amb còmput d’hores i flexibilitat guanyada
+- Gestió de **flexibilitat** (acumulada fins a 25h) i consum per dia
+- Exportació / importació (JSON) i **reset** complet de dades
 
 ---
 
@@ -40,7 +42,8 @@ Funcionalitats previstes (a completar):
 
 - Vite + React + TypeScript
 - Tailwind CSS
-- (Opcional) components UI (p. ex. shadcn/ui)
+- shadcn/ui + Radix UI
+- TanStack Query + React Router
 
 ---
 
@@ -67,14 +70,20 @@ Altres scripts útils:
 ```bash
 npm run build     # genera /dist
 npm run preview   # previsualitza el build localment
+npm run test      # executa tests amb Vitest
 ```
 
 ---
 
 ## 🔐 On es guarden les dades?
 
-L’aplicació **guarda la informació al navegador** (sense backend).  
-A la pràctica, això acostuma a ser **Local Storage** o **IndexedDB** (depèn de com estigui implementat).
+L’aplicació **guarda la informació al navegador** (sense backend), via **localStorage**.
+
+Claus utilitzades:
+
+- `control-horari-config`
+- `control-horari-days`
+- `control-horari-onboarding-step`
 
 ### Què implica això?
 - ✅ Les dades queden **al teu dispositiu** i al **perfil** del navegador
@@ -86,10 +95,8 @@ A la pràctica, això acostuma a ser **Local Storage** o **IndexedDB** (depèn d
 3. Ves a **Application**
 4. Mira:
    - **Local Storage** → `https://control-horari-educacio.lovable.app`
-   - **IndexedDB**
+   - **IndexedDB** *(no s’utilitza actualment)*
    - **Session Storage**
-
-Si vols, després podem documentar aquí les **claus exactes** (keys) quan sàpigues quines són.
 
 ---
 
@@ -100,43 +107,30 @@ A Lovable: **Share → Publish**.
 
 ### Opció B — GitHub Pages (Vite) ✅
 
-Com que és Vite, cal tenir en compte el **base path** (si publiques a `https://usuari.github.io/nom-repo/`).
+El projecte ja té configurat el `base` per GitHub Pages segons el mode de build.
 
-#### 1) Configura el `base` a `vite.config.ts`
-Si el repo es diu `control-horari-educacio`:
-
-```ts
-export default defineConfig({
-  base: "/control-horari-educacio/",
-});
-```
-
-#### 2) Build
 ```bash
-npm run build
+npm run build:gh
 ```
-Això crea la carpeta `dist/`.
 
-#### 3) Deploy amb GitHub Actions
-A **Settings → Pages**:
+Això crea `dist/` amb `base` apuntant a `/control-horari-educacio/`.
+
+Després, a **Settings → Pages**:
 - **Build and deployment**: “GitHub Actions”
+- Deploy de `dist/`
 
-I usa un workflow que desplegui `dist/` a Pages.
-
-> Si el teu Pages ja funciona, genial 🙌 Si mai torna a fallar, normalment és per `base` o per la configuració de Pages.
-
----
-
-## 📸 Captures
-*(pendent)*
+> Si el teu Pages ja funciona, genial 🙌 Si mai torna a fallar, revisa que la build s’hagi fet amb `build:gh`.
 
 ---
 
 ## 🤝 Contribuir
+
 Issues i PRs són benvinguts. Si obres un PR, explica:
 - què resol
 - com provar-ho
 - captures (si afecta UI)
+
+---
 
 ## 🧾 Llicència i atribució
 
