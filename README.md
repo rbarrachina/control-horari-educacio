@@ -1,4 +1,4 @@
-# Control horari Educació
+# Control horari
 
 Aplicació web personal per portar el **control horari** (jornades, bossa de flexibilitat, vacances i assumptes personals) per a personal d’educació.  
 Funciona **100% al navegador** (sense servidor) i es pot desplegar fàcilment a **GitHub Pages**.
