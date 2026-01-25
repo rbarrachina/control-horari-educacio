@@ -137,7 +137,9 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
       ? actualWorkedHours + absenceHoursDecimal
       : actualWorkedHours;
   
-  const difference = totalWorkedHours - theoreticalHours;
+  const rawDifference = totalWorkedHours - theoreticalHours;
+  const roundedDifference = Math.round(rawDifference * 60) / 60;
+  const difference = Math.abs(roundedDifference) < 1 / 60 ? 0 : roundedDifference;
   const holiday = isHoliday(date, config.holidays);
 
   const getDayName = () => {
