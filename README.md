@@ -1,7 +1,7 @@
 # Control horari Educació
 
 Aplicació web personal per portar el **control horari** (jornades, bossa de flexibilitat, vacances i assumptes personals) per a personal d’educació.  
-Funciona **100% al navegador** (sense servidor) i es pot desplegar fàcilment a **GitHub Pages** o publicar des de **Lovable**...
+Funciona **100% al navegador** (sense servidor) i es pot desplegar fàcilment a **GitHub Pages** o publicar des de **Lovable**.
 
 > 🧩 **App (Lovable)**: https://control-horari-educacio.lovable.app/  
 > 🌐 **Demo (GitHub Pages)**: https://rbarrachina.github.io/control-horari-educacio/ *(si està desplegat)*
