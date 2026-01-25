@@ -219,7 +219,7 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
         </DialogHeader>
         <div className="space-y-5">
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold">Hores i minuts per aprovar</h3>
+            <h3 className="text-sm font-semibold">Dies per aprovar</h3>
             {pendingAPDaysList.length > 0 ? (
               <ul className="space-y-2">
                 {pendingAPDaysList.map((day) => (
@@ -233,12 +233,12 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground">No hi ha hores pendents d'aprovació.</p>
+              <p className="text-sm text-muted-foreground">No hi ha dies pendents d'aprovació.</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold">Hores i minuts aprovats</h3>
+            <h3 className="text-sm font-semibold">Dies aprovats</h3>
             {approvedAPDaysList.length > 0 ? (
               <ul className="space-y-2">
                 {approvedAPDaysList.map((day) => (
@@ -252,7 +252,7 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground">Encara no hi ha hores aprovades.</p>
+              <p className="text-sm text-muted-foreground">Encara no hi ha dies aprovats.</p>
             )}
           </div>
         </div>
@@ -271,7 +271,7 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
           </p>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold">Hores i minuts per aprovar</h3>
+            <h3 className="text-sm font-semibold">Dies per aprovar</h3>
             {pendingFlexDaysList.length > 0 ? (
               <ul className="space-y-2">
                 {pendingFlexDaysList.map((day) => (
@@ -285,12 +285,12 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground">No hi ha hores pendents d'aprovació.</p>
+              <p className="text-sm text-muted-foreground">No hi ha dies pendents d'aprovació.</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold">Hores i minuts aprovats</h3>
+            <h3 className="text-sm font-semibold">Dies aprovats</h3>
             {approvedFlexDaysList.length > 0 ? (
               <ul className="space-y-2">
                 {approvedFlexDaysList.map((day) => (
@@ -304,7 +304,7 @@ export function StatusSummary({ config, daysData, variant = 'default' }: StatusS
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground">Encara no hi ha hores aprovades.</p>
+              <p className="text-sm text-muted-foreground">Encara no hi ha dies aprovats.</p>
             )}
           </div>
         </div>
