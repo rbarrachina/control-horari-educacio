@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import type { DayData, UserConfig, DayStatus, RequestStatus } from '@/types';
-import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime, parseTimeToHours } from '@/lib/timeCalculations';
+import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime, parseTimeToHours, normalizeHoursDifference } from '@/lib/timeCalculations';
 import { DAY_NAMES_CA, MAX_FLEXIBILITY_HOURS, MONTH_NAMES_CA } from '@/lib/constants';
 import { Home, Building2, Plus, Trash2 } from 'lucide-react';
 
@@ -137,9 +137,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
       ? actualWorkedHours + absenceHoursDecimal
       : actualWorkedHours;
   
-  const rawDifference = totalWorkedHours - theoreticalHours;
-  const roundedDifference = Math.round(rawDifference * 60) / 60;
-  const difference = Math.abs(roundedDifference) < 1 / 60 ? 0 : roundedDifference;
+  const difference = normalizeHoursDifference(totalWorkedHours - theoreticalHours);
   const holiday = isHoliday(date, config.holidays);
 
   const getDayName = () => {

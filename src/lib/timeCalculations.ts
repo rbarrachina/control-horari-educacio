@@ -141,6 +141,11 @@ export function formatHoursDisplay(hours: number): string {
   return `${sign}${h}h ${m}min`;
 }
 
+export function normalizeHoursDifference(hours: number): number {
+  const rounded = Math.round(hours * 60) / 60;
+  return Math.abs(rounded) < 1 / 60 ? 0 : rounded;
+}
+
 export function formatHoursMinutes(hours: number): string {
   const totalMinutes = Math.round(Math.abs(hours) * 60);
   const h = Math.floor(totalMinutes / 60);
