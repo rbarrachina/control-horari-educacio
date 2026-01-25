@@ -404,8 +404,8 @@ export function SettingsDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid gap-4">
+              <div className="space-y-2 max-w-sm">
                 <Label htmlFor="vacationDays">Dies de vacances totals</Label>
                 <Input
                   id="vacationDays"
@@ -414,7 +414,7 @@ export function SettingsDialog({
                   onChange={(e) => setLocalConfig(prev => ({ ...prev, totalVacationDays: parseInt(e.target.value) || 0 }))}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 max-w-sm">
                 <Label>Hores d'AP totals</Label>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
