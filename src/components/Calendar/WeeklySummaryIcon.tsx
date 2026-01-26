@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import type { DayData, UserConfig } from '@/types';
-import { isWeekend, isHoliday, calculateDayWorkedHours, getTheoreticalHoursForDate } from '@/lib/timeCalculations';
+import { isWeekend, isHoliday, calculateTotalWorkedHours, getTheoreticalHoursForDate } from '@/lib/timeCalculations';
 import { format, eachDayOfInterval } from 'date-fns';
 import { CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 
@@ -38,15 +38,7 @@ export function WeeklySummaryIcon({ weekStart, weekEnd, daysData, config, onClic
       const theoretical = getTheoreticalHoursForDate(day, config);
       totalTheoretical += theoretical;
 
-      if (dayData?.dayStatus === 'assumpte_propi') {
-        totalWorked += (dayData.apHours || 0) + calculateDayWorkedHours(dayData);
-      } else if (dayData?.dayStatus === 'flexibilitat') {
-        totalWorked += (dayData.flexHours || 0) + calculateDayWorkedHours(dayData);
-      } else if (dayData?.dayStatus === 'altres') {
-        totalWorked += (dayData.otherHours || 0) + calculateDayWorkedHours(dayData);
-      } else {
-        totalWorked += calculateDayWorkedHours(dayData);
-      }
+      totalWorked += calculateTotalWorkedHours(dayData);
     }
     
     if (!dayData) {
