@@ -1,5 +1,5 @@
 import type { DayData, UserConfig, WeeklySummary, WeeklyConfig, ScheduleType } from '@/types';
-import { DAYS_OF_WEEK, MAX_FLEXIBILITY_HOURS, MIN_WEEKLY_SURPLUS_FOR_FLEXIBILITY, SCHEDULE_HOURS } from './constants';
+import { DAYS_OF_WEEK, MAX_DAILY_WORK_HOURS, MAX_FLEXIBILITY_HOURS, MIN_WEEKLY_SURPLUS_FOR_FLEXIBILITY, SCHEDULE_HOURS } from './constants';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, getWeek, parseISO, getDay, addDays, isWithinInterval } from 'date-fns';
 
 export function parseTimeToHours(time: string): number {
@@ -25,6 +25,24 @@ export function calculateDayWorkedHours(dayData: DayData | null | undefined): nu
   const primary = calculateWorkedHours(dayData.startTime, dayData.endTime);
   const secondary = calculateWorkedHours(dayData.startTime2 ?? null, dayData.endTime2 ?? null);
   return primary + secondary;
+}
+
+export function capDailyHours(hours: number): number {
+  return Math.min(Math.max(0, hours), MAX_DAILY_WORK_HOURS);
+}
+
+export function calculateTotalWorkedHours(dayData: DayData | null | undefined): number {
+  if (!dayData) return 0;
+  if (dayData.dayStatus === 'vacances') return 0;
+  const baseWorked = calculateDayWorkedHours(dayData);
+  const extraHours = dayData.dayStatus === 'assumpte_propi'
+    ? (dayData.apHours || 0)
+    : dayData.dayStatus === 'flexibilitat'
+      ? (dayData.flexHours || 0)
+      : dayData.dayStatus === 'altres'
+        ? (dayData.otherHours || 0)
+        : 0;
+  return capDailyHours(baseWorked + extraHours);
 }
 
 export function getDayOfWeekKey(date: Date): keyof WeeklyConfig | null {
@@ -106,15 +124,7 @@ export function calculateWeeklySummary(
     theoreticalHours += theoretical;
     
     if (dayData) {
-      if (dayData.dayStatus === 'assumpte_propi') {
-        workedHours += (dayData.apHours || 0) + calculateDayWorkedHours(dayData);
-      } else if (dayData.dayStatus === 'flexibilitat') {
-        workedHours += (dayData.flexHours || 0) + calculateDayWorkedHours(dayData);
-      } else if (dayData.dayStatus === 'altres') {
-        workedHours += (dayData.otherHours || 0) + calculateDayWorkedHours(dayData);
-      } else {
-        workedHours += calculateDayWorkedHours(dayData);
-      }
+      workedHours += calculateTotalWorkedHours(dayData);
     }
   });
   

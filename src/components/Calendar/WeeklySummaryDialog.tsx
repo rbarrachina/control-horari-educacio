@@ -8,6 +8,8 @@ import {
   getTheoreticalHoursForDate, 
   getDayTypeForDate, 
   calculateDayWorkedHours, 
+  calculateTotalWorkedHours,
+  capDailyHours,
   isHoliday, 
   isWeekend,
   formatHoursDisplay,
@@ -62,15 +64,7 @@ export function WeeklySummaryDialog({
     const theoretical = getTheoreticalHoursForDate(day, config);
     totalTheoretical += theoretical;
     
-    if (dayData?.dayStatus === 'assumpte_propi') {
-      totalWorked += (dayData.apHours || 0) + calculateDayWorkedHours(dayData);
-    } else if (dayData?.dayStatus === 'flexibilitat') {
-      totalWorked += (dayData.flexHours || 0) + calculateDayWorkedHours(dayData);
-    } else if (dayData?.dayStatus === 'altres') {
-      totalWorked += (dayData.otherHours || 0) + calculateDayWorkedHours(dayData);
-    } else {
-      totalWorked += calculateDayWorkedHours(dayData);
-    }
+    totalWorked += calculateTotalWorkedHours(dayData);
   }
 
   const difference = totalWorked - totalTheoretical;
@@ -158,7 +152,7 @@ export function WeeklySummaryDialog({
                 : dayData?.dayStatus === 'altres'
                   ? (dayData.otherHours || 0)
                   : 0;
-            const worked = baseWorked + extraHours;
+            const worked = capDailyHours(baseWorked + extraHours);
             const excludedFromTotals = holiday || dayData?.dayStatus === 'vacances';
             const summaryTheoretical = excludedFromTotals ? 0 : theoretical;
             const summaryWorked = excludedFromTotals ? 0 : worked;
