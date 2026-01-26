@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import type { DayData, UserConfig, DayStatus, RequestStatus } from '@/types';
-import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime, parseTimeToHours, normalizeHoursDifference } from '@/lib/timeCalculations';
+import { getTheoreticalHoursForDate, getDayTypeForDate, calculateWorkedHours, isHoliday, formatHoursToTime, parseTimeToHours, normalizeHoursDifference, capDailyHours } from '@/lib/timeCalculations';
 import { DAY_NAMES_CA, MAX_FLEXIBILITY_HOURS, MONTH_NAMES_CA } from '@/lib/constants';
 import { Home, Building2, Plus, Trash2 } from 'lucide-react';
 
@@ -131,11 +131,14 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
   const getFlexMinutesLimit = (hoursValue: number) => (hoursValue >= maxFlexHoursInt ? maxFlexMinutes : 59);
   
   // Total worked hours = actual worked + AP/FX hours (if applicable)
-  const totalWorkedHours = absenceType === 'vacances' 
+  const rawTotalWorkedHours = absenceType === 'vacances' 
     ? theoreticalHours  // Vacances counts as full day
     : (absenceType === 'assumpte_propi' || absenceType === 'flexibilitat' || absenceType === 'altres')
       ? actualWorkedHours + absenceHoursDecimal
       : actualWorkedHours;
+  const totalWorkedHours = absenceType === 'vacances'
+    ? rawTotalWorkedHours
+    : capDailyHours(rawTotalWorkedHours);
   
   const difference = normalizeHoursDifference(totalWorkedHours - theoreticalHours);
   const holiday = isHoliday(date, config.holidays);
@@ -501,7 +504,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
 
           {/* Summary */}
           <div className="p-4 bg-muted rounded-lg">
-            <div className="text-sm space-y-1">
+             <div className="text-[17px] font-semibold space-y-1">
               <p>Hores totals: <strong>{formatHoursMinutes(totalWorkedHours)}</strong></p>
               <p className={difference >= 0 ? 'text-[hsl(var(--status-complete))]' : 'text-[hsl(var(--status-deficit))]'}>
                 Diferència: <strong>{difference >= 0 ? '+' : '-'}{formatHoursMinutes(difference)}</strong>

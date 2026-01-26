@@ -107,11 +107,12 @@ export const MONTH_NAMES_CA = [
 
 export const MAX_FLEXIBILITY_HOURS = 25;
 export const MIN_WEEKLY_SURPLUS_FOR_FLEXIBILITY = 0.5; // 30 minutes
+export const MAX_DAILY_WORK_HOURS = 9.5;
 
 export const APP_INFO = {
   name: 'Σ Horari',
   author: 'Rafa Barrachina',
   license: 'Apache License 2.0',
   year: 2026,
-  version: '1.1',
+  version: '1.2',
 };
