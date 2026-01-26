@@ -1,0 +1,7 @@
+Release notes for sigma-horari
+
+
+Changes v1.2
+---------------------------------------------------------------------------------------
+- Modificat color de fons de resum diari
+- El màxim d'hores diàries són 9h 30 min
