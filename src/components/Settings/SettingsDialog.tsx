@@ -21,6 +21,8 @@ const ONBOARDING_TABS = {
   3: 'holidays',
 } as const;
 
+const MAX_AP_HOURS = 500;
+
 const SETTINGS_TABS = [
   { value: 'personal', label: 'Personal' },
   { value: 'schedule', label: 'Horari' },
@@ -49,6 +51,8 @@ export function SettingsDialog({
   onOnboardingStepChange,
 }: SettingsDialogProps) {
   const [localConfig, setLocalConfig] = useState<UserConfig>(config);
+  const [apTotalHours, setApTotalHours] = useState(0);
+  const [apTotalMinutes, setApTotalMinutes] = useState(0);
   const [newHoliday, setNewHoliday] = useState('');
   const [activeTab, setActiveTab] = useState<'personal' | 'schedule' | 'holidays' | 'data' | 'authorship'>('personal');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,6 +69,9 @@ export function SettingsDialog({
 
   useEffect(() => {
     setLocalConfig(config);
+    const totalMinutes = Math.round(config.totalAPHours * 60);
+    setApTotalHours(Math.floor(totalMinutes / 60));
+    setApTotalMinutes(totalMinutes % 60);
   }, [config]);
 
   useEffect(() => {
@@ -171,6 +178,26 @@ export function SettingsDialog({
         },
       },
     }));
+  };
+
+  const updateAPTotalHours = (nextHours: number, nextMinutes: number) => {
+    const safeHours = Number.isNaN(nextHours) ? 0 : Math.max(0, nextHours);
+    const safeMinutes = Number.isNaN(nextMinutes) ? 0 : Math.max(0, nextMinutes);
+    let adjustedHours = safeHours;
+    let adjustedMinutes = Math.min(safeMinutes, 59);
+
+    if (adjustedHours >= MAX_AP_HOURS) {
+      adjustedHours = MAX_AP_HOURS;
+      adjustedMinutes = 0;
+    }
+
+    if (adjustedHours + adjustedMinutes / 60 > MAX_AP_HOURS) {
+      adjustedMinutes = 0;
+    }
+
+    setApTotalHours(adjustedHours);
+    setApTotalMinutes(adjustedMinutes);
+    setLocalConfig(prev => ({ ...prev, totalAPHours: adjustedHours + adjustedMinutes / 60 }));
   };
 
   const updateSchedulePeriod = (id: string, field: 'startDate' | 'endDate' | 'scheduleType', value: string) => {
@@ -377,8 +404,8 @@ export function SettingsDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid gap-4">
+              <div className="space-y-2 max-w-sm">
                 <Label htmlFor="vacationDays">Dies de vacances totals</Label>
                 <Input
                   id="vacationDays"
@@ -387,14 +414,40 @@ export function SettingsDialog({
                   onChange={(e) => setLocalConfig(prev => ({ ...prev, totalVacationDays: parseInt(e.target.value) || 0 }))}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="apHours">Hores d'AP totals</Label>
-                <Input
-                  id="apHours"
-                  type="number"
-                  value={localConfig.totalAPHours}
-                  onChange={(e) => setLocalConfig(prev => ({ ...prev, totalAPHours: parseInt(e.target.value) || 0 }))}
-                />
+              <div className="space-y-2 max-w-sm">
+                <Label>Hores d'AP totals</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="apHours" className="text-xs text-muted-foreground">Hores</Label>
+                    <Input
+                      id="apHours"
+                      type="number"
+                      min={0}
+                      max={MAX_AP_HOURS}
+                      step="1"
+                      value={apTotalHours}
+                      onChange={(e) => {
+                        const nextHours = parseInt(e.target.value) || 0;
+                        updateAPTotalHours(nextHours, apTotalMinutes);
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="apMinutes" className="text-xs text-muted-foreground">Minuts</Label>
+                    <Input
+                      id="apMinutes"
+                      type="number"
+                      min={0}
+                      max={apTotalHours >= MAX_AP_HOURS ? 0 : 59}
+                      step="1"
+                      value={apTotalMinutes}
+                      onChange={(e) => {
+                        const nextMinutes = parseInt(e.target.value) || 0;
+                        updateAPTotalHours(apTotalHours, nextMinutes);
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 

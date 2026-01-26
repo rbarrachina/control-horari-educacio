@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import type { DayData, UserConfig } from '@/types';
-import { calculateDayWorkedHours, isWeekend, isHoliday, getTheoreticalHoursForDate, getDayTypeForDate } from '@/lib/timeCalculations';
+import { calculateDayWorkedHours, isWeekend, isHoliday, getTheoreticalHoursForDate, getDayTypeForDate, normalizeHoursDifference } from '@/lib/timeCalculations';
 import { format } from 'date-fns';
 import { Home, Building2, Plane, Clock, Sparkles, Calendar, Check, MoreHorizontal } from 'lucide-react';
 
@@ -42,7 +42,8 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isInCalenda
           ? (dayData.flexHours || 0)
           : (dayData.otherHours || 0);
       const totalWorked = worked + extraHours;
-      if (dayData.requestStatus === 'aprovat' && totalWorked >= theoretical) {
+      const difference = normalizeHoursDifference(totalWorked - theoretical);
+      if (dayData.requestStatus === 'aprovat' && difference >= 0) {
         return 'bg-[hsl(var(--status-complete))] text-[hsl(var(--status-complete-foreground))]';
       }
       return 'bg-[hsl(var(--status-deficit))] text-[hsl(var(--status-deficit-foreground))]';
@@ -59,7 +60,8 @@ export function CalendarDay({ date, dayData, config, isCurrentMonth, isInCalenda
     const worked = calculateDayWorkedHours(dayData);
     const theoretical = getTheoreticalHoursForDate(date, config);
     
-    if (worked >= theoretical) {
+    const difference = normalizeHoursDifference(worked - theoretical);
+    if (difference >= 0) {
       return 'bg-[hsl(var(--status-complete))] text-[hsl(var(--status-complete-foreground))]';
     }
     return 'bg-[hsl(var(--status-deficit))] text-[hsl(var(--status-deficit-foreground))]';

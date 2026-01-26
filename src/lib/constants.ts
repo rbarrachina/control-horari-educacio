@@ -32,8 +32,44 @@ export const DEFAULT_USER_CONFIG = {
   },
   schedulePeriods: [
     {
-      id: 'default-winter',
+      id: 'default-1',
       startDate: `${DEFAULT_CALENDAR_YEAR}-01-01`,
+      endDate: `${DEFAULT_CALENDAR_YEAR}-01-10`,
+      scheduleType: 'estiu' as const,
+    },
+    {
+      id: 'default-2',
+      startDate: `${DEFAULT_CALENDAR_YEAR}-01-11`,
+      endDate: `${DEFAULT_CALENDAR_YEAR}-03-29`,
+      scheduleType: 'hivern' as const,
+    },
+    {
+      id: 'default-3',
+      startDate: `${DEFAULT_CALENDAR_YEAR}-03-30`,
+      endDate: `${DEFAULT_CALENDAR_YEAR}-04-06`,
+      scheduleType: 'estiu' as const,
+    },
+    {
+      id: 'default-4',
+      startDate: `${DEFAULT_CALENDAR_YEAR}-04-07`,
+      endDate: `${DEFAULT_CALENDAR_YEAR}-05-31`,
+      scheduleType: 'hivern' as const,
+    },
+    {
+      id: 'default-5',
+      startDate: `${DEFAULT_CALENDAR_YEAR}-06-01`,
+      endDate: `${DEFAULT_CALENDAR_YEAR}-09-30`,
+      scheduleType: 'estiu' as const,
+    },
+    {
+      id: 'default-6',
+      startDate: `${DEFAULT_CALENDAR_YEAR}-10-01`,
+      endDate: `${DEFAULT_CALENDAR_YEAR}-12-14`,
+      scheduleType: 'hivern' as const,
+    },
+    {
+      id: 'default-7',
+      startDate: `${DEFAULT_CALENDAR_YEAR}-12-15`,
       endDate: `${DEFAULT_CALENDAR_YEAR}-12-31`,
       scheduleType: 'estiu' as const,
     },
