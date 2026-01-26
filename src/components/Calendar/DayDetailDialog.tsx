@@ -504,7 +504,7 @@ export function DayDetailDialog({ date, dayData, config, requestedVacationDays, 
 
           {/* Summary */}
           <div className="p-4 bg-muted rounded-lg">
-             <div className="text-[15px] font-semibold space-y-1">
+             <div className="text-[17px] font-semibold space-y-1">
               <p>Hores totals: <strong>{formatHoursMinutes(totalWorkedHours)}</strong></p>
               <p className={difference >= 0 ? 'text-[hsl(var(--status-complete))]' : 'text-[hsl(var(--status-deficit))]'}>
                 Diferència: <strong>{difference >= 0 ? '+' : '-'}{formatHoursMinutes(difference)}</strong>
