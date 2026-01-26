@@ -114,5 +114,5 @@ export const APP_INFO = {
   author: 'Rafa Barrachina',
   license: 'Apache License 2.0',
   year: 2026,
-  version: '1.1',
+  version: '1.2',
 };
